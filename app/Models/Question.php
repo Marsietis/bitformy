@@ -13,8 +13,11 @@ class Question extends Model
 
     protected $fillable = [
         'form_id',
-        'question_text',
-        'question_type',
+        'title',
+        'type',
+        'options',
+        'required',
+        'order',
     ];
 
     public function answer(): HasMany

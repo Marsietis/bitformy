@@ -14,6 +14,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', action: fn() => Inertia::render('Dashboard'))
         ->name('dashboard');
     Route::get('form/new', action: fn() => Inertia::render('form/CreateForm'));
+    Route::post('form', [FormController::class, 'store'])->name('form.store');
 });
 
 require __DIR__ . '/settings.php';
