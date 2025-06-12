@@ -32,15 +32,22 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
+            'password_validator' => 'required|string|size:64|regex:/^[a-f0-9]{64}$/',
+            'salt' => 'required|string|size:64|regex:/^[a-f0-9]{64}$/',
+            'public_key' => 'required|string|min:200|max:5000|regex:/^-----BEGIN PGP PUBLIC KEY BLOCK-----.*-----END PGP PUBLIC KEY BLOCK-----$/s',
+            'private_key' => 'required|string',
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'password_validator' => $request->password_validator,
+            'salt' => $request->salt,
+            'private_key' => $request->private_key,
+            'public_key' => $request->public_key,
         ]);
+
 
         event(new Registered($user));
 
