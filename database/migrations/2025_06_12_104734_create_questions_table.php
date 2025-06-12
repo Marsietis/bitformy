@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         Schema::create('questions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('form_id')->constrained('forms')->cascadeOnDelete();
+            $table->foreignUuid('form_id')->constrained('forms')->cascadeOnDelete();
             $table->string('title');
             $table->string('type');
             $table->text('options')->nullable();
