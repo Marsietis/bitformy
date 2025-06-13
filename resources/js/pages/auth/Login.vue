@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { argon2idHash, shaHash } from '@/utils/crypto/hashingUtils';
+import { decryptWithAes } from '@/utils/crypto/encryptionUtils';
 import InputError from '@/components/InputError.vue';
 import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,9 @@ const form = useForm({
 });
 
 const submit = async () => {
+    form.processing = true;
+    form.clearErrors();
+    
     try {
         const response = await axios.post(route('pull-salt'), {
             email: form.email,
@@ -36,21 +40,36 @@ const submit = async () => {
         const passwordValidator = await shaHash(passwordHash);
         console.log(passwordValidator);
 
-        form.transform((data) => ({
-            email: data.email,
+        // Use axios to handle the login request and get the private key
+        const loginResponse = await axios.post(route('login'), {
+            email: form.email,
             password_validator: passwordValidator,
             salt: salt,
-        })).post(route('login'), {
-            onFinish: () => {
-                form.reset('password');
-            },
+            remember: form.remember,
         });
+
+        if (loginResponse.data.success) {
+            const encryptedPrivateKey = JSON.parse(loginResponse.data.private_key);
+            const decryptedPrivateKey = await decryptWithAes(encryptedPrivateKey, passwordHash);
+            
+            console.log('Private key successfully decrypted!', decryptedPrivateKey);
+            
+            sessionStorage.setItem('privateKey', decryptedPrivateKey);
+            
+            window.location.href = loginResponse.data.redirect_url;
+        }
     } catch (error: any) {
         if (error.response && error.response.status === 404) {
             form.setError('email', 'Invalid email or password');
+        } else if (error.response && error.response.status === 422) {
+            form.setError('email', 'Invalid email or password');
         } else {
             console.error('Error:', error);
+            form.setError('email', 'An error occurred during login');
         }
+    } finally {
+        form.processing = false;
+        form.reset('password');
     }
 };
 </script>
