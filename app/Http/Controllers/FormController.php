@@ -116,6 +116,10 @@ class FormController extends Controller
 
     public function answers(Form $form)
     {
+        if (auth()->id() !== $form->user_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $answers = $form->answers()->get();
         $questions = $form->questions()->orderBy('order')->get();
         return Inertia::render('form/Answers', ['answers' => $answers, 'questions' => $questions, 'form' => $form]);

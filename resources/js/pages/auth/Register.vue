@@ -32,6 +32,7 @@ const submit = async () => {
         const salt = generateSalt();
         const passwordHash = await argon2idHash(form.password, salt);
         const { privateKey, publicKey } = await generatePgpKeys(form.name);
+        console.log(privateKey, publicKey);
         const encryptedPrivateKey = JSON.stringify(await encryptWithAes(privateKey, passwordHash));
         const passwordValidator = await shaHash(passwordHash);
 
