@@ -16,6 +16,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 Route::get('form/{id}', [FormController::class, 'show'])->name('form.view');
+Route::post('form/{form}/submit', [FormController::class, 'submit'])->name('form.submit');
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';

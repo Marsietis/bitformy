@@ -20,7 +20,7 @@ class FormController extends Controller
 
     public function show($id)
     {
-        $form = Form::findOrFail($id);
+        $form = Form::with('user:id,public_key')->findOrFail($id);
         $questions = $form->questions()->orderBy('order')->get();
 
         return Inertia::render('form/ViewForm', [
@@ -69,5 +69,44 @@ class FormController extends Controller
         }
 
         return redirect()->route('dashboard')->with('success', 'Form created successfully');
+    }
+
+    public function submit(Request $request, Form $form)
+    {
+        $validated = $request->validate([
+            'answers' => [
+                'required',
+                'array',
+                function ($attribute, $value, $fail) use ($form) {
+                    $requiredQuestionIds = $form->questions()->where('required', true)->pluck('id');
+                    $submittedQuestionIds = collect($value)->pluck('question_id');
+                    $missingRequiredQuestions = $requiredQuestionIds->diff($submittedQuestionIds);
+
+                    if ($missingRequiredQuestions->isNotEmpty()) {
+                        $fail('Not all required questions have been answered.');
+                    }
+                },
+            ],
+            'answers.*.question_id' => [
+                'required',
+                'exists:questions,id',
+                function ($attribute, $value, $fail) use ($form) {
+                    if (!$form->questions()->where('id', $value)->exists()) {
+                        $fail("The selected {$attribute} is invalid for this form.");
+                    }
+                },
+            ],
+            'answers.*.answer' => 'required|string',
+        ]);
+
+        foreach ($validated['answers'] as $answerData) {
+            $form->answers()->create([
+                'question_id' => $answerData['question_id'],
+                'answer' => $answerData['answer'],
+                'form_id' => $form->id, // although hasManyThrough, let's be explicit
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Form submitted successfully!');
     }
 }

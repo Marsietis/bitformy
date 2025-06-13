@@ -3,6 +3,8 @@
     import GuestLayout from '@/layouts/GuestLayout.vue';
     import { Head, usePage } from '@inertiajs/vue3';
     import { ref, computed } from 'vue';
+    import * as openpgp from 'openpgp';
+    import { router } from '@inertiajs/vue3';
 
     const page = usePage();
     const user = computed(() => page.props.auth.user);
@@ -11,6 +13,25 @@
         form: Object,
         questions: Array,
     });
+
+    const getOptions = (optionsString) => {
+        if (!optionsString) return { items: [], multiple: false };
+        return JSON.parse(optionsString);
+    };
+
+    const initializeAnswers = () => props.questions.reduce((acc, question) => {
+        const options = getOptions(question.options);
+        if (question.type === 'choice' && options.multiple) {
+            acc[question.id] = [];
+        } else {
+            acc[question.id] = null;
+        }
+        return acc;
+    }, {});
+
+    const answers = ref(initializeAnswers());
+    const submissionStatus = ref('');
+    const submitted = ref(false);
 
     const breadcrumbs = computed(() => {
         if (!user.value) {
@@ -27,11 +48,6 @@
             },
         ];
     });
-
-    const getOptions = (optionsString) => {
-        if (!optionsString) return { items: [], multiple: false };
-        return JSON.parse(optionsString);
-    };
 
     const isFormCreator = computed(() => {
         return user.value && props.form.user_id === user.value.id;
@@ -66,6 +82,75 @@
                     }, 2000);
                 });
         }
+    };
+
+    const submitForm = async () => {
+        for (const question of props.questions) {
+            if (question.required) {
+                const answer = answers.value[question.id];
+                if (answer === null || answer === '' || (Array.isArray(answer) && answer.length === 0)) {
+                    submissionStatus.value = `Error: The question "${question.title}" is required.`;
+                    return;
+                }
+            }
+        }
+
+        if (!props.form.user?.public_key) {
+            submissionStatus.value = 'Error: Form creator has no public key.';
+            return;
+        }
+
+        submissionStatus.value = 'Encrypting and submitting...';
+
+        try {
+            const publicKey = await openpgp.readKey({ armoredKey: props.form.user.public_key });
+
+            const encryptedAnswers = await Promise.all(
+                props.questions
+                    .map(question => {
+                        const answer = answers.value[question.id];
+                        if (answer === undefined || answer === null || answer === '' || (Array.isArray(answer) && answer.length === 0)) {
+                            return null;
+                        }
+                        return { question, answer };
+                    })
+                    .filter(Boolean)
+                    .map(async ({ question, answer }) => {
+                        const answerString = typeof answer === 'object' ? JSON.stringify(answer) : String(answer);
+
+                        const message = await openpgp.createMessage({ text: answerString });
+                        const encrypted = await openpgp.encrypt({
+                            message,
+                            encryptionKeys: publicKey,
+                        });
+
+                        return {
+                            question_id: question.id,
+                            answer: encrypted,
+                        };
+                    })
+            );
+
+            router.post(`/form/${props.form.id}/submit`, { answers: encryptedAnswers }, {
+                onSuccess: () => {
+                    submitted.value = true;
+                },
+                onError: (errors) => {
+                    console.error('Submission error:', errors);
+                    submissionStatus.value = 'An error occurred during submission.';
+                },
+            });
+
+        } catch (e) {
+            console.error('Encryption failed', e);
+            submissionStatus.value = 'Error: Could not encrypt answers.';
+        }
+    };
+
+    const submitAnotherResponse = () => {
+        answers.value = initializeAnswers();
+        submissionStatus.value = '';
+        submitted.value = false;
     };
 </script>
 
@@ -109,69 +194,87 @@
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <div v-if="questions && questions.length > 0" class="space-y-8">
-                        <div
-                            v-for="(question, index) in questions"
-                            :key="question.id"
-                            class="border-b border-gray-200 pb-6 last:border-b-0"
-                        >
-                            <div class="mb-4">
-                                <div class="flex items-start">
-                                    <span class="inline-flex items-center justify-center w-8 h-8 bg-primary/10 text-primary rounded-full mr-3 font-medium">
-                                        {{ index + 1 }}
-                                    </span>
-                                    <div>
-                                        <h3 class="text-lg font-medium text-gray-900">
-                                            {{ question.title }}
-                                            <span v-if="question.required" class="text-red-500 ml-1">*</span>
-                                        </h3>
-                                    </div>
-                                </div>
-
-                                <!-- Text question type -->
-                                <div v-if="question.type === 'text'" class="mt-4 pl-11">
-                                    <input
-                                        type="text"
-                                        :required="question.required"
-                                        class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors duration-200"
-                                        :placeholder="question.required ? 'Your answer (required)' : 'Your answer'"
-                                    />
-                                </div>
-
-                                <!-- Choice question type -->
-                                <div v-else-if="question.type === 'choice'" class="mt-4 pl-11">
-                                    <div v-if="getOptions(question.options).items.length > 0" class="space-y-3">
-                                        <div
-                                            v-for="(option, optionIndex) in getOptions(question.options).items"
-                                            :key="optionIndex"
-                                            class="flex items-center"
-                                        >
-                                            <input
-                                                :type="getOptions(question.options).multiple ? 'checkbox' : 'radio'"
-                                                :id="`q${index}_option${optionIndex}`"
-                                                :name="`question_${question.id}`"
-                                                :value="option"
-                                                class="h-4 w-4 text-primary focus:ring-primary border-gray-300"
-                                                :required="question.required && !getOptions(question.options).multiple"
-                                            />
-                                            <label
-                                                :for="`q${index}_option${optionIndex}`"
-                                                class="ml-2 block text-gray-700"
-                                            >
-                                                {{ option }}
-                                            </label>
+                <form @submit.prevent="submitForm" v-if="!submitted">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <div v-if="questions && questions.length > 0" class="space-y-8">
+                            <div
+                                v-for="(question, index) in questions"
+                                :key="question.id"
+                                class="border-b border-gray-200 pb-6 last:border-b-0"
+                            >
+                                <div class="mb-4">
+                                    <div class="flex items-start">
+                                        <span class="inline-flex items-center justify-center w-8 h-8 bg-primary/10 text-primary rounded-full mr-3 font-medium">
+                                            {{ index + 1 }}
+                                        </span>
+                                        <div>
+                                            <h3 class="text-lg font-medium text-gray-900">
+                                                {{ question.title }}
+                                                <span v-if="question.required" class="text-red-500 ml-1">*</span>
+                                            </h3>
                                         </div>
                                     </div>
-                                    <div v-else class="text-gray-500 italic">No options available</div>
+
+                                    <!-- Text question type -->
+                                    <div v-if="question.type === 'text'" class="mt-4 pl-11">
+                                        <input
+                                            type="text"
+                                            :required="question.required"
+                                            v-model="answers[question.id]"
+                                            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors duration-200"
+                                            :placeholder="question.required ? 'Your answer (required)' : 'Your answer'"
+                                        />
+                                    </div>
+
+                                    <!-- Choice question type -->
+                                    <div v-else-if="question.type === 'choice'" class="mt-4 pl-11">
+                                        <div v-if="getOptions(question.options).items.length > 0" class="space-y-3">
+                                            <div
+                                                v-for="(option, optionIndex) in getOptions(question.options).items"
+                                                :key="optionIndex"
+                                                class="flex items-center"
+                                            >
+                                                <input
+                                                    :type="getOptions(question.options).multiple ? 'checkbox' : 'radio'"
+                                                    :id="`q${index}_option${optionIndex}`"
+                                                    :name="`question_${question.id}`"
+                                                    :value="option"
+                                                    v-model="answers[question.id]"
+                                                    class="h-4 w-4 text-primary focus:ring-primary border-gray-300"
+                                                    :required="question.required && (!getOptions(question.options).multiple && !answers[question.id])"
+                                                />
+                                                <label
+                                                    :for="`q${index}_option${optionIndex}`"
+                                                    class="ml-2 block text-gray-700"
+                                                >
+                                                    {{ option }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div v-else class="text-gray-500 italic">No options available</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div v-else class="text-center py-8">
-                        <p class="text-gray-600">This form has no questions.</p>
+                        <div v-else class="text-center py-8">
+                            <p class="text-gray-600">This form has no questions.</p>
+                        </div>
+
+                        <div v-if="questions && questions.length > 0" class="mt-8 flex justify-end items-center gap-4">
+                            <span v-if="submissionStatus" class="text-sm text-gray-600">{{ submissionStatus }}</span>
+                            <button type="submit" class="inline-flex items-center px-6 py-2.5 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                                Submit
+                            </button>
+                        </div>
                     </div>
+                </form>
+                <div v-else class="text-center py-20 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Form submitted</h2>
+                    <p class="mt-2 text-gray-600">Your response has been recorded.</p>
+                    <button @click="submitAnotherResponse" type="button" class="mt-6 inline-flex items-center px-6 py-2.5 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        Submit another response
+                    </button>
                 </div>
             </div>
         </div>
