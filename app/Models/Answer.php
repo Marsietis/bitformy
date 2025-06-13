@@ -12,8 +12,8 @@ class Answer extends Model
 
     protected $fillable = [
         'question_id',
-        'user_id',
-        'answer_text',
+        'form_id',
+        'answer',
     ];
 
     protected function question(): BelongsTo

@@ -8,13 +8,15 @@ import { Input } from '@/components/ui/input/index.js';
 
 const breadcrumbs = [
     {
+        title: 'Forms',
+        href: '/dashboard',
+    },
+    {
         title: 'New Form',
         href: '/form/create',
     },
 ];
 
-
-// Then use it with useForm without the generic type parameter
 const form = useForm({
     title: '',
     description: '',
@@ -74,20 +76,20 @@ const submit = () => {
     <Head title="New Form" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="min-h-screen bg-gray-50/50">
+        <div class="min-h-screen">
             <div class="mx-auto max-w-5xl p-6">
                 <div class="mb-8">
-                    <h1 class="text-3xl font-bold text-gray-900">Create New Form</h1>
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Create New Form</h1>
                     <p class="mt-2 text-gray-600"></p>
                 </div>
 
                 <form @submit.prevent="submit" class="space-y-8">
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
-                        <h2 class="text-lg font-semibold text-gray-900">Form Details</h2>
+                    <div class="rounded-xl border border-gray-200 p-6 space-y-6">
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Form Details</h2>
 
                         <div class="space-y-5">
                             <div>
-                                <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
+                                <label for="title" class="block text-sm font-medium text-gray-700 mb-2 dark:text-white">
                                     Title <span class="text-red-500">*</span>
                                 </label>
                                 <Input
@@ -100,7 +102,7 @@ const submit = () => {
                             </div>
 
                             <div>
-                                <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
+                                <label for="description" class="block text-sm font-medium text-gray-700 dark:text-white mb-2">
                                     Description
                                 </label>
                                 <textarea
@@ -114,14 +116,14 @@ const submit = () => {
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="rounded-xl border border-gray-200 p-6">
                         <div class="mb-6">
-                            <h2 class="text-lg font-semibold text-gray-900">Questions</h2>
+                            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Questions</h2>
                             <p class="text-sm text-gray-600 mt-1"></p>
                         </div>
 
                         <div v-if="form.questions.length === 0" class="text-center py-12">
-                            <p class="text-gray-600 font-medium">No questions yet</p>
+                            <p class="text-gray-600 dark:text-white font-medium">No questions yet</p>
                         </div>
 
                         <div class="space-y-6">
@@ -133,7 +135,7 @@ const submit = () => {
                                 :animation="200"
                             >
                                 <template #item="{ element: question, index: qIndex }">
-                                    <div class="bg-gray-50 rounded-lg border border-gray-200 p-5 hover:shadow-md transition-shadow duration-200">
+                                    <div class="rounded-lg border border-gray-200 p-5 hover:shadow-md transition-shadow duration-200">
                                         <div class="flex justify-between items-start mb-4">
                                             <div class="flex items-center gap-3">
                                                 <!-- Drag handle -->
@@ -323,7 +325,8 @@ const submit = () => {
                     <div class="flex justify-end gap-4">
                         <Button
                             type="button"
-                            variant="outline">
+                            variant="outline"
+                        @click="$inertia.visit('/dashboard')">
                             Cancel
                         </Button>
                         <Button
