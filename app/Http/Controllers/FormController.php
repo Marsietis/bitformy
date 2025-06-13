@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Form;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class FormController extends Controller
 {
@@ -19,6 +20,13 @@ class FormController extends Controller
 
     public function show($id)
     {
+        $form = Form::findOrFail($id);
+        $questions = $form->questions()->orderBy('order')->get();
+
+        return Inertia::render('form/ViewForm', [
+            'form' => $form,
+            'questions' => $questions,
+        ]);
     }
 
     public function store(Request $request)
