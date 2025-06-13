@@ -34,7 +34,7 @@ import { Head, Link } from '@inertiajs/vue3';
             </nav>
         </header>
         <div class="flex w-full items-center justify-center opacity-100 transition-opacity duration-750 lg:grow starting:opacity-0">
-                <div class="text-9xl text-black font-bold">Bitformy</div>
+                <div class="text-9xl text-black dark:text-white font-bold">Bitformy</div>
         </div>
         <div class="hidden h-14.5 lg:block"></div>
     </div>
