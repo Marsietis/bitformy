@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Form;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class FormController extends Controller
@@ -111,5 +112,12 @@ class FormController extends Controller
         }
 
         return redirect()->back()->with('success', 'Form submitted successfully!');
+    }
+
+    public function answers(Form $form)
+    {
+        $answers = $form->answers()->get();
+        $questions = $form->questions()->orderBy('order')->get();
+        return Inertia::render('form/Answers', ['answers' => $answers, 'questions' => $questions, 'form' => $form]);
     }
 }

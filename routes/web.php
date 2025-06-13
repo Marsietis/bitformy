@@ -13,6 +13,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::get('form/new', action: fn() => Inertia::render('form/CreateForm'));
     Route::post('form', [FormController::class, 'store'])->name('form.store');
+    Route::get('form/{form}/answers', [FormController::class, 'answers'])->name('form.answers');
 });
 
 Route::get('form/{id}', [FormController::class, 'show'])->name('form.view');
