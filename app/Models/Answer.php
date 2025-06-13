@@ -14,6 +14,7 @@ class Answer extends Model
         'question_id',
         'form_id',
         'answer',
+        'submission_id',
     ];
 
     protected function question(): BelongsTo

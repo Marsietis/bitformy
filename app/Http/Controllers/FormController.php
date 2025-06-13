@@ -99,11 +99,14 @@ class FormController extends Controller
             'answers.*.answer' => 'required|string',
         ]);
 
+        $submissionId = Str::uuid();
+
         foreach ($validated['answers'] as $answerData) {
             $form->answers()->create([
                 'question_id' => $answerData['question_id'],
                 'answer' => $answerData['answer'],
-                'form_id' => $form->id, // although hasManyThrough, let's be explicit
+                'form_id' => $form->id,
+                'submission_id' => $submissionId, // Add submission_id here
             ]);
         }
 
