@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { argon2idHash, shaHash } from '@/utils/crypto/hashingUtils';
 import InputError from '@/components/InputError.vue';
 import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
+import axios from 'axios';
 
 defineProps<{
     status?: string;
@@ -20,10 +22,36 @@ const form = useForm({
     remember: false,
 });
 
-const submit = () => {
-    form.post(route('login'), {
-        onFinish: () => form.reset('password'),
-    });
+const submit = async () => {
+    try {
+        const response = await axios.post(route('pull-salt'), {
+            email: form.email,
+        });
+
+        const salt = response.data.salt;
+
+        console.log(salt);
+        const passwordHash = await argon2idHash(form.password, salt);
+        console.log(passwordHash);
+        const passwordValidator = await shaHash(passwordHash);
+        console.log(passwordValidator);
+
+        form.transform((data) => ({
+            email: data.email,
+            password_validator: passwordValidator,
+            salt: salt,
+        })).post(route('login'), {
+            onFinish: () => {
+                form.reset('password');
+            },
+        });
+    } catch (error: any) {
+        if (error.response && error.response.status === 404) {
+            form.setError('email', 'Invalid email or password');
+        } else {
+            console.error('Error:', error);
+        }
+    }
 };
 </script>
 

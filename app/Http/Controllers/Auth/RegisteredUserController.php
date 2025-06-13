@@ -39,10 +39,12 @@ class RegisteredUserController extends Controller
             'private_key' => 'required|string',
         ]);
 
+        $hashedPasswordValidator = hash('sha256', $request->password_validator);
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password_validator' => $request->password_validator,
+            'password_validator' => $hashedPasswordValidator,
             'salt' => $request->salt,
             'private_key' => $request->private_key,
             'public_key' => $request->public_key,

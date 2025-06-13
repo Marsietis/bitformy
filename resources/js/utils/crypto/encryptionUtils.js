@@ -48,7 +48,7 @@ const decodeBase64 = (base64) => {
     return bytes.buffer;
 }
 
-const decryptWithAes = async (encryptedData, hash) => {
+export const decryptWithAes = async (encryptedData, hash) => {
     // Convert hash to ArrayBuffer (assume hash is a hex string)
     const keyBuffer = Uint8Array.from(hash.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
     // Import the key
