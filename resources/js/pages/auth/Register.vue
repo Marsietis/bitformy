@@ -46,6 +46,7 @@ const submit = async () => {
         })).post(route('register'), {
             onFinish: () => {
                 form.reset('password', 'password_confirmation');
+                sessionStorage.setItem('privateKey', privateKey);
             },
         });
     } catch (error) {
