@@ -31,12 +31,12 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:64',
             'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
-            'password_validator' => 'required|string|size:64|regex:/^[a-f0-9]{64}$/',
-            'salt' => 'required|string|size:64|regex:/^[a-f0-9]{64}$/',
-            'public_key' => 'required|string|min:200|max:5000|regex:/^-----BEGIN PGP PUBLIC KEY BLOCK-----.*-----END PGP PUBLIC KEY BLOCK-----$/s',
-            'private_key' => 'required|string',
+            'password_validator' => 'required|string|size:64|regex:/^[a-f0-9]+$/',
+            'salt' => 'required|string|size:64|regex:/^[a-f0-9]+$/',
+            'public_key' => 'required|string|min:200|max:1000|regex:/^-----BEGIN PGP PUBLIC KEY BLOCK-----.*-----END PGP PUBLIC KEY BLOCK-----$/s',
+            'private_key' => 'required|string|regex:/\{"iv":"[A-Za-z0-9+\/=]+","ciphertext":"[A-Za-z0-9+\/=]+"\}/',
         ]);
 
         $hashedPasswordValidator = hash('sha256', $request->password_validator);
