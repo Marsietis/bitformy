@@ -43,7 +43,6 @@ class LoginRequest extends FormRequest
         $this->ensureIsNotRateLimited();
 
         $user = User::where('email', $this->string('email'))->first();
-        // Hash the password validator with sha256
         $hashedPasswordValidator = hash('sha256', $this->string('password_validator'));
 
         if (! $user || $user->password_validator !== $hashedPasswordValidator) {
