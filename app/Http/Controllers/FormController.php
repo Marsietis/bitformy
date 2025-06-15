@@ -9,19 +9,9 @@ use Inertia\Inertia;
 
 class FormController extends Controller
 {
-    public function index()
-    {
-
-    }
-
-    public function create()
-    {
-
-    }
-
     public function show($id)
     {
-        $form = Form::with('user:id,public_key')->findOrFail($id);
+        $form = Form::findOrFail($id);
         $questions = $form->questions()->orderBy('order')->get();
 
         return Inertia::render('form/ViewForm', [
@@ -107,7 +97,7 @@ class FormController extends Controller
                 'question_id' => $answerData['question_id'],
                 'answer' => $answerData['answer'],
                 'form_id' => $form->id,
-                'submission_id' => $submissionId, // Add submission_id here
+                'submission_id' => $submissionId,
             ]);
         }
 
