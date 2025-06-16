@@ -16,6 +16,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('form/{form}/answers', [FormController::class, 'answers'])->name('form.answers');
     Route::get('form/{form}/edit', [FormController::class, 'edit'])->name('form.edit');
     Route::put('form/{form}', [FormController::class, 'update'])->name('form.update');
+    Route::post('form/{form}/regenerate-link', [FormController::class, 'regenerateLink'])->name('form.regenerateLink');
     Route::delete('form/{form}', [FormController::class, 'destroy'])->name('form.destroy');
 });
 

@@ -2,7 +2,7 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import draggable from 'vuedraggable';
 import { Input } from '@/components/ui/input/index.js';
 
@@ -113,6 +113,56 @@ const submit = () => {
         }
     });
 };
+
+// Add new functionality for regenerating form link
+const showRegenerateConfirm = ref(false);
+const isRegeneratingLink = ref(false);
+
+const formLink = computed(() => {
+    if (typeof window !== 'undefined') {
+        return `${window.location.origin}/form/${props.form.id}`;
+    }
+    return '';
+});
+
+const copyStatus = ref('Copy');
+
+const copyLink = () => {
+    if (formLink.value) {
+        navigator.clipboard.writeText(formLink.value)
+            .then(() => {
+                copyStatus.value = 'Copied!';
+                setTimeout(() => {
+                    copyStatus.value = 'Copy';
+                }, 2000);
+            })
+            .catch(err => {
+                console.error('Failed to copy: ', err);
+                copyStatus.value = 'Failed';
+                setTimeout(() => {
+                    copyStatus.value = 'Copy';
+                }, 2000);
+            });
+    }
+};
+
+const regenerateLink = () => {
+    isRegeneratingLink.value = true;
+    form.post(`/form/${props.form.id}/regenerate-link`, {
+        preserveScroll: false,
+        onFinish: () => {
+            isRegeneratingLink.value = false;
+            showRegenerateConfirm.value = false;
+        },
+        onError: () => {
+            isRegeneratingLink.value = false;
+        }
+    });
+};
+
+const cancelRegenerateLink = () => {
+    showRegenerateConfirm.value = false;
+};
 </script>
 
 <template>
@@ -161,6 +211,45 @@ const submit = () => {
                                 <div v-if="form.errors.description" class="mt-1 text-sm text-red-600">
                                     {{ form.errors.description }}
                                 </div>
+                            </div>
+
+                            <!-- Form Link Section -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-white mb-2">
+                                    Form Link
+                                </label>
+                                <div class="flex gap-3">
+                                    <div class="flex-1 flex rounded-lg border border-gray-300 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-200">
+                                        <input
+                                            type="text"
+                                            :value="formLink"
+                                            readonly
+                                            class="flex-1 px-4 py-2.5 rounded-l-lg border-0 bg-gray-50 focus:ring-0 text-sm"
+                                            placeholder="Form link will appear here"
+                                        />
+                                        <button
+                                            type="button"
+                                            @click="copyLink"
+                                            class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 border-l border-gray-300 rounded-r-lg text-sm font-medium text-gray-700 transition-colors"
+                                        >
+                                            {{ copyStatus }}
+                                        </button>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        @click="showRegenerateConfirm = true"
+                                        class="px-4 py-2.5 text-sm"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                        </svg>
+                                        Generate New Link
+                                    </Button>
+                                </div>
+                                <p class="mt-1 text-sm text-gray-500">
+                                    Share this link to allow others to access and submit your form. Generating a new link will invalidate the current one.
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -405,6 +494,56 @@ const submit = () => {
                         </div>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- Regenerate Link Confirmation Modal -->
+        <div v-if="showRegenerateConfirm" class="fixed inset-0 z-50 overflow-y-auto">
+            <div class="flex min-h-screen items-center justify-center p-4">
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="cancelRegenerateLink"></div>
+                <div class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-orange-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <svg class="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                            </svg>
+                        </div>
+                        <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                            <h3 class="text-base font-semibold leading-6 text-gray-900">Generate New Form Link</h3>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-500">
+                                    This will generate a new UUID for your form link. The current link will no longer work and anyone using it will get a "not found" error. Are you sure you want to continue?
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                        <Button
+                            type="button"
+                            @click="regenerateLink"
+                            :disabled="isRegeneratingLink"
+                            class="inline-flex w-full justify-center rounded-md bg-orange-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-500 sm:ml-3 sm:w-auto"
+                        >
+                            <span v-if="!isRegeneratingLink">Generate New Link</span>
+                            <span v-else class="flex items-center">
+                                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Generating...
+                            </span>
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            @click="cancelRegenerateLink"
+                            :disabled="isRegeneratingLink"
+                            class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                        >
+                            Cancel
+                        </Button>
+                    </div>
+                </div>
             </div>
         </div>
     </AppLayout>
