@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { argon2idHash, shaHash } from '@/utils/crypto/hashingUtils';
+import { decryptWithAes } from '@/utils/crypto/encryptionUtils';
 import InputError from '@/components/InputError.vue';
 import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
@@ -8,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
+import axios from 'axios';
 
 defineProps<{
     status?: string;
@@ -20,10 +23,40 @@ const form = useForm({
     remember: false,
 });
 
-const submit = () => {
-    form.post(route('login'), {
-        onFinish: () => form.reset('password'),
-    });
+const submit = async () => {
+    form.processing = true;
+    form.clearErrors();
+    
+    try {
+        const response = await axios.post(route('pull-salt'), {
+            email: form.email,
+        });
+
+        const salt = response.data.salt;
+        const passwordHash = await argon2idHash(form.password, salt);
+        const passwordValidator = await shaHash(passwordHash);
+
+        const loginResponse = await axios.post(route('login'), {
+            email: form.email,
+            password_validator: passwordValidator,
+            salt: salt,
+            remember: form.remember,
+        });
+
+        if (loginResponse.data.success) {
+            const encryptedPrivateKey = JSON.parse(loginResponse.data.private_key);
+            const decryptedPrivateKey = await decryptWithAes(encryptedPrivateKey, passwordHash);
+            
+            sessionStorage.setItem('privateKey', decryptedPrivateKey);
+            
+            window.location.href = loginResponse.data.redirect_url;
+        }
+    } catch (error: any) {
+        form.setError('email', 'Invalid email or password');
+    } finally {
+        form.processing = false;
+        form.reset('password');
+    }
 };
 </script>
 

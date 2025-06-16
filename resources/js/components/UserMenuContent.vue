@@ -10,6 +10,7 @@ interface Props {
 }
 
 const handleLogout = () => {
+    sessionStorage.clear();
     router.flushAll();
 };
 

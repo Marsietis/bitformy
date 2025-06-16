@@ -4,20 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Form;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class FormController extends Controller
 {
-    public function index()
-    {
-
-    }
-
-    public function create()
-    {
-
-    }
-
     public function show($id)
     {
         $form = Form::with('user:id,public_key')->findOrFail($id);
@@ -99,14 +90,28 @@ class FormController extends Controller
             'answers.*.answer' => 'required|string',
         ]);
 
+        $submissionId = Str::uuid();
+
         foreach ($validated['answers'] as $answerData) {
             $form->answers()->create([
                 'question_id' => $answerData['question_id'],
                 'answer' => $answerData['answer'],
-                'form_id' => $form->id, // although hasManyThrough, let's be explicit
+                'form_id' => $form->id,
+                'submission_id' => $submissionId,
             ]);
         }
 
         return redirect()->back()->with('success', 'Form submitted successfully!');
+    }
+
+    public function answers(Form $form)
+    {
+        if (auth()->id() !== $form->user_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $answers = $form->answers()->get();
+        $questions = $form->questions()->orderBy('order')->get();
+        return Inertia::render('form/Answers', ['answers' => $answers, 'questions' => $questions, 'form' => $form]);
     }
 }

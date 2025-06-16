@@ -11,6 +11,7 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('question_id')->constrained('questions')->cascadeOnDelete();
             $table->foreignUuid('form_id')->constrained('forms')->cascadeOnDelete();
+            $table->uuid('submission_id')->nullable(false);
             $table->text('answer')->nullable();
             $table->timestamps();
         });

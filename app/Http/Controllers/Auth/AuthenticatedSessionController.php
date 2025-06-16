@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -27,13 +29,41 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request): JsonResponse
     {
         $request->authenticate();
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        $user = Auth::user();
+        
+        return response()->json([
+            'success' => true,
+            'private_key' => $user->private_key,
+            'redirect_url' => route('dashboard', absolute: false)
+        ]);
+    }
+
+    public function pullSalt(Request $request): JsonResponse
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        // A random salt is returned if the user is not found.
+        // This is to prevent the user from knowing if the email is valid or not.
+        if (!$user) {
+            $randomSalt = bin2hex(random_bytes(32));
+            return response()->json([
+                'salt' => $randomSalt,
+            ]);
+        }
+
+        return response()->json([
+            'salt' => $user->salt,
+        ]);
     }
 
     /**
