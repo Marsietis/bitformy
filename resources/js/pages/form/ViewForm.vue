@@ -175,6 +175,10 @@
     const cancelDelete = () => {
         showDeleteConfirm.value = false;
     };
+
+    const viewAnswers = () => {
+        router.visit(`/form/${props.form.id}/answers`);
+    };
 </script>
 
 <template>
@@ -190,6 +194,9 @@
                             <p v-if="form.description" class="mt-3 text-gray-600">{{ form.description }}</p>
                         </div>
                         <div v-if="isFormCreator" class="flex items-center gap-2">
+                            <button @click="viewAnswers" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                                View Answers
+                            </button>
                             <button @click="editForm" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
                                 Edit
                             </button>
