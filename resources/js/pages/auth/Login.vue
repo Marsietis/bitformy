@@ -33,14 +33,9 @@ const submit = async () => {
         });
 
         const salt = response.data.salt;
-
-        console.log(salt);
         const passwordHash = await argon2idHash(form.password, salt);
-        console.log(passwordHash);
         const passwordValidator = await shaHash(passwordHash);
-        console.log(passwordValidator);
 
-        // Use axios to handle the login request and get the private key
         const loginResponse = await axios.post(route('login'), {
             email: form.email,
             password_validator: passwordValidator,
@@ -52,21 +47,12 @@ const submit = async () => {
             const encryptedPrivateKey = JSON.parse(loginResponse.data.private_key);
             const decryptedPrivateKey = await decryptWithAes(encryptedPrivateKey, passwordHash);
             
-            console.log('Private key successfully decrypted!', decryptedPrivateKey);
-            
             sessionStorage.setItem('privateKey', decryptedPrivateKey);
             
             window.location.href = loginResponse.data.redirect_url;
         }
     } catch (error: any) {
-        if (error.response && error.response.status === 404) {
-            form.setError('email', 'Invalid email or password');
-        } else if (error.response && error.response.status === 422) {
-            form.setError('email', 'Invalid email or password');
-        } else {
-            console.error('Error:', error);
-            form.setError('email', 'An error occurred during login');
-        }
+        form.setError('email', 'Invalid email or password');
     } finally {
         form.processing = false;
         form.reset('password');

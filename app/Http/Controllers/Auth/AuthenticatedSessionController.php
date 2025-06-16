@@ -52,8 +52,13 @@ class AuthenticatedSessionController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
+        // A random salt is returned if the user is not found.
+        // This is to prevent the user from knowing if the email is valid or not.
         if (!$user) {
-            return response()->json(['message' => 'User not found.'], 404);
+            $randomSalt = bin2hex(random_bytes(32));
+            return response()->json([
+                'salt' => $randomSalt,
+            ]);
         }
 
         return response()->json([
