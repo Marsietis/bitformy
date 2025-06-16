@@ -219,6 +219,17 @@ class FormController extends Controller
         return redirect()->back()->with('success', 'Form submitted successfully!');
     }
 
+    public function destroy(Form $form)
+    {
+        if (auth()->id() !== $form->user_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $form->delete();
+
+        return redirect()->route('dashboard')->with('success', 'Form deleted successfully');
+    }
+
     public function answers(Form $form)
     {
         if (auth()->id() !== $form->user_id) {

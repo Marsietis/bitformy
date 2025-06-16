@@ -16,6 +16,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('form/{form}/answers', [FormController::class, 'answers'])->name('form.answers');
     Route::get('form/{form}/edit', [FormController::class, 'edit'])->name('form.edit');
     Route::put('form/{form}', [FormController::class, 'update'])->name('form.update');
+    Route::delete('form/{form}', [FormController::class, 'destroy'])->name('form.destroy');
 });
 
 Route::get('form/{id}', [FormController::class, 'show'])->name('form.view');

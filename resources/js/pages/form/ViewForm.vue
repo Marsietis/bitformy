@@ -152,6 +152,29 @@
         submissionStatus.value = '';
         submitted.value = false;
     };
+
+    const showDeleteConfirm = ref(false);
+
+    const editForm = () => {
+        router.visit(`/form/${props.form.id}/edit`);
+    };
+
+    const deleteForm = () => {
+        router.delete(`/form/${props.form.id}`, {
+            onSuccess: () => {
+                router.visit('/dashboard');
+            },
+            onError: (errors) => {
+                console.error('Delete error:', errors);
+                submissionStatus.value = 'An error occurred while deleting the form.';
+            },
+        });
+        showDeleteConfirm.value = false;
+    };
+
+    const cancelDelete = () => {
+        showDeleteConfirm.value = false;
+    };
 </script>
 
 <template>
@@ -166,19 +189,27 @@
                             <h1 class="text-3xl font-bold text-gray-900">{{ form.title }}</h1>
                             <p v-if="form.description" class="mt-3 text-gray-600">{{ form.description }}</p>
                         </div>
-                        <div v-if="isFormCreator" class="relative">
-                            <button @click="showSharePopover = !showSharePopover" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-                                Share
+                        <div v-if="isFormCreator" class="flex items-center gap-2">
+                            <button @click="editForm" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                                Edit
                             </button>
-                            <div v-if="showSharePopover" class="absolute right-0 mt-2 w-72 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
-                                <div class="p-4">
-                                    <p class="text-sm font-medium text-gray-900">Share form</p>
-                                    <p class="mt-1 text-sm text-gray-500">Anyone with the link can view and submit this form.</p>
-                                    <div class="mt-4 flex rounded-md shadow-sm">
-                                        <input type="text" :value="formLink" readonly class="block w-full flex-1 rounded-none rounded-l-md border-gray-300 bg-gray-50 focus:border-primary focus:ring-primary sm:text-sm">
-                                        <button @click="copyLink" type="button" class="relative -ml-px inline-flex items-center space-x-2 rounded-r-md border border-gray-300 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary">
-                                            <span>{{ copyStatus }}</span>
-                                        </button>
+                            <button @click="showDeleteConfirm = true" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                Delete
+                            </button>
+                            <div class="relative">
+                                <button @click="showSharePopover = !showSharePopover" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                                    Share
+                                </button>
+                                <div v-if="showSharePopover" class="absolute right-0 mt-2 w-72 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                                    <div class="p-4">
+                                        <p class="text-sm font-medium text-gray-900">Share form</p>
+                                        <p class="mt-1 text-sm text-gray-500">Anyone with the link can view and submit this form.</p>
+                                        <div class="mt-4 flex rounded-md shadow-sm">
+                                            <input type="text" :value="formLink" readonly class="block w-full flex-1 rounded-none rounded-l-md border-gray-300 bg-gray-50 focus:border-primary focus:ring-primary sm:text-sm">
+                                            <button @click="copyLink" type="button" class="relative -ml-px inline-flex items-center space-x-2 rounded-r-md border border-gray-300 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary">
+                                                <span>{{ copyStatus }}</span>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -275,6 +306,33 @@
                     <button @click="submitAnotherResponse" type="button" class="mt-6 inline-flex items-center px-6 py-2.5 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
                         Submit another response
                     </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Confirmation Dialog -->
+        <div v-if="showDeleteConfirm" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div class="mt-3 text-center">
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                        <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.124 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Delete Form</h3>
+                    <div class="mt-2 px-7 py-3">
+                        <p class="text-sm text-gray-500">
+                            Are you sure you want to delete "{{ form.title }}"? This action cannot be undone.
+                        </p>
+                    </div>
+                    <div class="flex justify-center gap-4 px-4 py-3">
+                        <button @click="cancelDelete" type="button" class="px-4 py-2 bg-white text-gray-500 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                            Cancel
+                        </button>
+                        <button @click="deleteForm" type="button" class="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                            Delete
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
