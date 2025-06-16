@@ -5,6 +5,9 @@
     import { ref, computed } from 'vue';
     import * as openpgp from 'openpgp';
     import { router } from '@inertiajs/vue3';
+    import { Button } from '@/components/ui/button';
+    import { Input } from '@/components/ui/input';
+    import { Label } from '@/components/ui/label';
 
     const page = usePage();
     const user = computed(() => page.props.auth.user);
@@ -186,43 +189,55 @@
 
     <component :is="layout" :breadcrumbs="breadcrumbs">
         <div class="min-h-screen bg-gray-50/50">
-            <div class="mx-auto max-w-5xl p-6">
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+            <div class="mx-auto max-w-4xl p-6">
+                <!-- Form Header Card -->
+                <div class="rounded-xl border border-gray-200 bg-white shadow-sm p-8 mb-6">
                     <div class="flex items-start justify-between">
-                        <div>
+                        <div class="flex-1">
                             <h1 class="text-3xl font-bold text-gray-900">{{ form.title }}</h1>
-                            <p v-if="form.description" class="mt-3 text-gray-600">{{ form.description }}</p>
+                            <p v-if="form.description" class="mt-3 text-gray-600 text-lg">{{ form.description }}</p>
                         </div>
-                        <div v-if="isFormCreator" class="flex items-center gap-2">
-                            <button @click="viewAnswers" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        
+                        <!-- Creator Actions -->
+                        <div v-if="isFormCreator" class="flex items-center gap-3 ml-6">
+                            <Button @click="viewAnswers" variant="outline" size="sm">
                                 View Answers
-                            </button>
-                            <button @click="editForm" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                            </Button>
+                            <Button @click="editForm" variant="outline" size="sm">
                                 Edit
-                            </button>
-                            <button @click="showDeleteConfirm = true" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                            </Button>
+                            <Button @click="showDeleteConfirm = true" variant="destructive" size="sm">
                                 Delete
-                            </button>
+                            </Button>
+                            
+                            <!-- Share Popover -->
                             <div class="relative">
-                                <button @click="showSharePopover = !showSharePopover" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                                <Button @click="showSharePopover = !showSharePopover" size="sm">
                                     Share
-                                </button>
-                                <div v-if="showSharePopover" class="absolute right-0 mt-2 w-72 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
-                                    <div class="p-4">
-                                        <p class="text-sm font-medium text-gray-900">Share form</p>
-                                        <p class="mt-1 text-sm text-gray-500">Anyone with the link can view and submit this form.</p>
-                                        <div class="mt-4 flex rounded-md shadow-sm">
-                                            <input type="text" :value="formLink" readonly class="block w-full flex-1 rounded-none rounded-l-md border-gray-300 bg-gray-50 focus:border-primary focus:ring-primary sm:text-sm">
-                                            <button @click="copyLink" type="button" class="relative -ml-px inline-flex items-center space-x-2 rounded-r-md border border-gray-300 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary">
-                                                <span>{{ copyStatus }}</span>
-                                            </button>
+                                </Button>
+                                <div v-if="showSharePopover" class="absolute right-0 mt-2 w-80 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10 border border-gray-200">
+                                    <div class="p-6">
+                                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Share form</h3>
+                                        <p class="text-sm text-gray-600 mb-4">Anyone with the link can view and submit this form.</p>
+                                        <div class="flex gap-2">
+                                            <Input 
+                                                type="text" 
+                                                :model-value="formLink" 
+                                                readonly 
+                                                class="flex-1 bg-gray-50"
+                                            />
+                                            <Button @click="copyLink" variant="outline" size="sm" class="shrink-0">
+                                                {{ copyStatus }}
+                                            </Button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="flex items-center gap-4 mt-4 text-sm text-muted-foreground">
+                    
+                    <!-- Form Meta Info -->
+                    <div class="flex items-center gap-6 mt-6 text-sm text-gray-500">
                         <span v-if="form.created_at">
                             Created: {{ new Date(form.created_at).toLocaleDateString() }}
                         </span>
@@ -232,113 +247,121 @@
                     </div>
                 </div>
 
+                <!-- Form Content -->
                 <form @submit.prevent="submitForm" v-if="!submitted">
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="rounded-xl border border-gray-200 bg-white shadow-sm p-8">
                         <div v-if="questions && questions.length > 0" class="space-y-8">
                             <div
                                 v-for="(question, index) in questions"
                                 :key="question.id"
-                                class="border-b border-gray-200 pb-6 last:border-b-0"
+                                class="border-b border-gray-100 pb-8 last:border-b-0 last:pb-0"
                             >
-                                <div class="mb-4">
-                                    <div class="flex items-start">
-                                        <span class="inline-flex items-center justify-center w-8 h-8 bg-primary/10 text-primary rounded-full mr-3 font-medium">
+                                <div class="mb-6">
+                                    <div class="flex items-start gap-4">
+                                        <div class="flex items-center justify-center w-8 h-8 bg-primary/10 text-primary rounded-full font-semibold text-sm shrink-0 mt-1">
                                             {{ index + 1 }}
-                                        </span>
-                                        <div>
-                                            <h3 class="text-lg font-medium text-gray-900">
+                                        </div>
+                                        <div class="flex-1">
+                                            <Label class="text-lg font-semibold text-gray-900 block mb-4">
                                                 {{ question.title }}
                                                 <span v-if="question.required" class="text-red-500 ml-1">*</span>
-                                            </h3>
-                                        </div>
-                                    </div>
+                                            </Label>
 
-                                    <!-- Text question type -->
-                                    <div v-if="question.type === 'text'" class="mt-4 pl-11">
-                                        <input
-                                            type="text"
-                                            :required="question.required"
-                                            v-model="answers[question.id]"
-                                            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors duration-200"
-                                            :placeholder="question.required ? 'Your answer (required)' : 'Your answer'"
-                                        />
-                                    </div>
-
-                                    <!-- Choice question type -->
-                                    <div v-else-if="question.type === 'choice'" class="mt-4 pl-11">
-                                        <div v-if="getOptions(question.options).items.length > 0" class="space-y-3">
-                                            <div
-                                                v-for="(option, optionIndex) in getOptions(question.options).items"
-                                                :key="optionIndex"
-                                                class="flex items-center"
-                                            >
-                                                <input
-                                                    :type="getOptions(question.options).multiple ? 'checkbox' : 'radio'"
-                                                    :id="`q${index}_option${optionIndex}`"
-                                                    :name="`question_${question.id}`"
-                                                    :value="option"
+                                            <!-- Text question type -->
+                                            <div v-if="question.type === 'text'">
+                                                <Input
+                                                    type="text"
+                                                    :required="question.required"
                                                     v-model="answers[question.id]"
-                                                    class="h-4 w-4 text-primary focus:ring-primary border-gray-300"
-                                                    :required="question.required && (!getOptions(question.options).multiple && !answers[question.id])"
+                                                    :placeholder="question.required ? 'Your answer (required)' : 'Your answer'"
+                                                    class="w-full"
                                                 />
-                                                <label
-                                                    :for="`q${index}_option${optionIndex}`"
-                                                    class="ml-2 block text-gray-700"
-                                                >
-                                                    {{ option }}
-                                                </label>
+                                            </div>
+
+                                            <!-- Choice question type -->
+                                            <div v-else-if="question.type === 'choice'">
+                                                <div v-if="getOptions(question.options).items.length > 0" class="space-y-3">
+                                                    <div
+                                                        v-for="(option, optionIndex) in getOptions(question.options).items"
+                                                        :key="optionIndex"
+                                                        class="flex items-center gap-3"
+                                                    >
+                                                        <input
+                                                            :type="getOptions(question.options).multiple ? 'checkbox' : 'radio'"
+                                                            :id="`q${index}_option${optionIndex}`"
+                                                            :name="`question_${question.id}`"
+                                                            :value="option"
+                                                            v-model="answers[question.id]"
+                                                            class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                                                            :required="question.required && (!getOptions(question.options).multiple && !answers[question.id])"
+                                                        />
+                                                        <Label
+                                                            :for="`q${index}_option${optionIndex}`"
+                                                            class="text-gray-700 font-normal cursor-pointer"
+                                                        >
+                                                            {{ option }}
+                                                        </Label>
+                                                    </div>
+                                                </div>
+                                                <div v-else class="text-gray-500 italic">No options available</div>
                                             </div>
                                         </div>
-                                        <div v-else class="text-gray-500 italic">No options available</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div v-else class="text-center py-8">
-                            <p class="text-gray-600">This form has no questions.</p>
+                        <div v-else class="text-center py-12">
+                            <p class="text-gray-600 text-lg">This form has no questions.</p>
                         </div>
 
-                        <div v-if="questions && questions.length > 0" class="mt-8 flex justify-end items-center gap-4">
+                        <div v-if="questions && questions.length > 0" class="mt-8 flex justify-between items-center">
                             <span v-if="submissionStatus" class="text-sm text-gray-600">{{ submissionStatus }}</span>
-                            <button type="submit" class="inline-flex items-center px-6 py-2.5 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-                                Submit
-                            </button>
+                            <div class="ml-auto">
+                                <Button type="submit" size="lg">
+                                    Submit
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </form>
-                <div v-else class="text-center py-20 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h2 class="text-2xl font-bold text-gray-900">Form submitted</h2>
-                    <p class="mt-2 text-gray-600">Your response has been recorded.</p>
-                    <button @click="submitAnotherResponse" type="button" class="mt-6 inline-flex items-center px-6 py-2.5 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+
+                <!-- Success State -->
+                <div v-else class="rounded-xl border border-gray-200 bg-white shadow-sm p-12 text-center">
+                    <div class="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-3">Form submitted successfully</h2>
+                    <p class="text-gray-600 mb-8">Your response has been recorded and encrypted.</p>
+                    <Button @click="submitAnotherResponse" variant="outline" size="lg">
                         Submit another response
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>
 
-        <!-- Delete Confirmation Dialog -->
-        <div v-if="showDeleteConfirm" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-                <div class="mt-3 text-center">
-                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+        <!-- Delete Confirmation Modal -->
+        <div v-if="showDeleteConfirm" class="fixed inset-0 bg-gray-600/50 backdrop-blur-sm overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+            <div class="relative bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-md mx-auto">
+                <div class="p-6">
+                    <div class="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
                         <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.124 16.5c-.77.833.192 2.5 1.732 2.5z" />
                         </svg>
                     </div>
-                    <h3 class="text-lg leading-6 font-medium text-gray-900">Delete Form</h3>
-                    <div class="mt-2 px-7 py-3">
-                        <p class="text-sm text-gray-500">
-                            Are you sure you want to delete "{{ form.title }}"? This action cannot be undone.
-                        </p>
-                    </div>
-                    <div class="flex justify-center gap-4 px-4 py-3">
-                        <button @click="cancelDelete" type="button" class="px-4 py-2 bg-white text-gray-500 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    <h3 class="text-lg font-semibold text-gray-900 text-center mb-2">Delete Form</h3>
+                    <p class="text-sm text-gray-600 text-center mb-6">
+                        Are you sure you want to delete "{{ form.title }}"? This action cannot be undone.
+                    </p>
+                    <div class="flex gap-3">
+                        <Button @click="cancelDelete" variant="outline" class="flex-1">
                             Cancel
-                        </button>
-                        <button @click="deleteForm" type="button" class="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        </Button>
+                        <Button @click="deleteForm" variant="destructive" class="flex-1">
                             Delete
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>
