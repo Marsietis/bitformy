@@ -1,6 +1,6 @@
 // Encrypts data with AES-256-GCM using the provided hash as the key
 export const encryptWithAes = async (data, hash) => {
-    // Convert hash to ArrayBuffer (assume hash is a hex string)
+    // Convert hash to ArrayBuffer
     const keyBuffer = Uint8Array.from(hash.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
     // Import the key
     const key = await crypto.subtle.importKey(
@@ -33,11 +33,6 @@ export function generateSalt() {
     crypto.getRandomValues(array);
     return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
-export const toBase64 = (data) => {
-    const uint8Array = new TextEncoder().encode(data);
-    return btoa(String.fromCharCode(...uint8Array));
-}
-
 const decodeBase64 = (base64) => {
     const binaryString = atob(base64);
     const len = binaryString.length;
