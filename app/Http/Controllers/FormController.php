@@ -67,7 +67,7 @@ class FormController extends Controller
             'questions.*.title' => 'required|string|max:255',
             'questions.*.type' => 'required|string|in:text,choice',
             'questions.*.required' => 'boolean',
-            'questions.*.options' => 'nullable',
+            'questions.*.options' => 'nullable|required_if:questions.*.type,choice',
             'questions.*.multipleChoice' => 'nullable|boolean',
             'questions.*.order' => 'nullable|integer',
             'questions.*.created_at' => 'nullable|string',
