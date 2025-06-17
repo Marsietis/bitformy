@@ -1,5 +1,5 @@
 <script setup lang="js">
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import * as openpgp from 'openpgp';
@@ -18,7 +18,6 @@ const decryptedSubmissions = ref([]);
 const isLoading = ref(true);
 const errorMessages = ref([]);
 
-// Export options
 const exportFormat = ref('csv');
 const exportType = ref('decrypted');
 const showExportOptions = ref(false);
@@ -38,10 +37,9 @@ const breadcrumbs = computed(() => [
     },
 ]);
 
-// Get the title of a question by its ID
 const getQuestionTitle = (questionId) => {
     const question = props.questions.find(question => question.id === questionId);
-    return question?.title ?? 'Unknown Question';
+    return question.title;
 };
 
 // Export functions
@@ -59,7 +57,6 @@ const downloadFile = (content, filename, mimeType) => {
 
 const getExportData = () => {
     if (exportType.value === 'decrypted') {
-        // Format decrypted data for export
         const data = [];
         decryptedSubmissions.value.forEach(submission => {
             submission.answers.forEach(answer => {
@@ -73,7 +70,6 @@ const getExportData = () => {
         });
         return data;
     } else {
-        // Format encrypted data for export
         const data = [];
         props.answers.forEach(answer => {
             data.push({
@@ -99,12 +95,11 @@ const exportToCSV = () => {
     const headers = Object.keys(data[0]);
     const csvContent = [
         headers.join(','),
-        ...data.map(row => 
+        ...data.map(row =>
             headers.map(header => {
                 const cell = row[header] || '';
-                // Escape quotes and wrap in quotes if contains comma, quote, or newline
-                return /[",\n\r]/.test(cell) 
-                    ? `"${cell.replace(/"/g, '""')}"` 
+                return /[",\n\r]/.test(cell)
+                    ? `"${cell.replace(/"/g, '""')}"`
                     : cell;
             }).join(',')
         )
@@ -124,16 +119,16 @@ const exportToXLS = () => {
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Answers');
-    
+
     const filename = `${props.form.title}_answers_${exportType.value}.xlsx`;
     XLSX.writeFile(wb, filename);
 };
 
 const exportToJSON = () => {
-    const data = exportType.value === 'decrypted' 
-        ? decryptedSubmissions.value 
+    const data = exportType.value === 'decrypted'
+        ? decryptedSubmissions.value
         : props.answers;
-    
+
     if (data.length === 0) {
         alert('No data to export');
         return;
@@ -163,7 +158,7 @@ const handleExport = () => {
         default:
             alert('Unknown export format');
     }
-    
+
     showExportOptions.value = false;
 };
 
@@ -240,23 +235,9 @@ const processAnswers = async () => {
     isLoading.value = false;
 };
 
-// Close export options when clicking outside
-const closeExportOptions = (event) => {
-    if (!event.target.closest('.export-dropdown')) {
-        showExportOptions.value = false;
-    }
-};
-
 onMounted(() => {
     processAnswers();
-    document.addEventListener('click', closeExportOptions);
 });
-
-// Clean up event listener
-onUnmounted(() => {
-    document.removeEventListener('click', closeExportOptions);
-});
-
 </script>
 
 <template>
@@ -271,10 +252,10 @@ onUnmounted(() => {
                             <h1 class="text-3xl font-bold text-gray-900">Answers for {{ form.title }}</h1>
                             <p v-if="form.description" class="mt-3 text-gray-600 text-lg">{{ form.description }}</p>
                         </div>
-                        
+
                         <!-- Export Dropdown -->
                         <div class="relative export-dropdown">
-                            <Button 
+                            <Button
                                 @click="showExportOptions = !showExportOptions"
                                 :disabled="isLoading"
                                 variant="outline"
@@ -285,12 +266,12 @@ onUnmounted(() => {
                                 </svg>
                                 Export Answers
                             </Button>
-                            
+
                             <!-- Export Options Modal -->
                             <div v-if="showExportOptions" class="absolute right-0 top-full mt-2 w-80 bg-white border border-gray-200 rounded-xl shadow-lg z-10">
                                 <div class="p-6">
                                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Export Options</h3>
-                                    
+
                                     <!-- Format Selection -->
                                     <div class="mb-6">
                                         <Label class="block text-sm font-medium text-gray-700 mb-3">Export Format</Label>
@@ -309,7 +290,7 @@ onUnmounted(() => {
                                             </label>
                                         </div>
                                     </div>
-                                    
+
                                     <!-- Content Type Selection -->
                                     <div class="mb-6">
                                         <Label class="block text-sm font-medium text-gray-700 mb-3">Content Type</Label>
@@ -324,16 +305,16 @@ onUnmounted(() => {
                                             </label>
                                         </div>
                                     </div>
-                                    
+
                                     <!-- Action Buttons -->
                                     <div class="flex gap-3">
-                                        <Button 
+                                        <Button
                                             @click="handleExport"
                                             class="flex-1"
                                         >
                                             Download
                                         </Button>
-                                        <Button 
+                                        <Button
                                             @click="showExportOptions = false"
                                             variant="outline"
                                             class="flex-1"
@@ -394,7 +375,7 @@ onUnmounted(() => {
                         <div class="p-6 border-b border-gray-100">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <h2 class="text-lg font-semibold text-gray-900">Submission ID: {{ submission.id.substring(0, 8) }}...</h2>
+                                    <h2 class="text-lg font-semibold text-gray-900">Submission ID: {{ submission.id}}</h2>
                                     <p class="text-sm text-gray-500 mt-1">Submitted at: {{ submission.submittedAt }}</p>
                                 </div>
                             </div>
@@ -417,3 +398,4 @@ onUnmounted(() => {
         </div>
     </AppLayout>
 </template>
+
