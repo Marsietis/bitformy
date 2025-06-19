@@ -9,44 +9,21 @@ import * as openpgp from 'openpgp';
 import { computed, ref } from 'vue';
 
 const page = usePage();
-const user = computed(() => page.props.auth.user);
+
+const user = computed(function () {
+    return page.props.auth.user;
+});
 
 const props = defineProps({
     form: Object,
     questions: Array,
 });
 
-const getOptions = (optionsString) => {
-    if (!optionsString) {
-        return {
-            items: [],
-            multiple: false,
-        };
-    }
-    return JSON.parse(optionsString);
-};
-
-// TODO fix this shit
-const initializeAnswers = () =>
-    props.questions.reduce((acc, question) => {
-        const options = getOptions(question.options);
-        if (question.type === 'choice' && options.multiple) {
-            acc[question.id] = [];
-        } else {
-            acc[question.id] = null;
-        }
-        return acc;
-    }, {});
-
-const answers = ref(initializeAnswers());
-
-const submissionStatus = ref('');
-const submitted = ref(false);
-
-const breadcrumbs = computed(() => {
+const breadcrumbs = computed(function () {
     if (!user.value) {
         return [];
     }
+
     return [
         {
             title: 'Forms',
@@ -59,17 +36,58 @@ const breadcrumbs = computed(() => {
     ];
 });
 
-const isFormCreator = computed(() => {
+const getOptions = (optionsString) => {
+    if (!optionsString) {
+        return {
+            items: [],
+            multiple: false,
+        };
+    }
+    return JSON.parse(optionsString);
+};
+
+// Function to set up initial empty answers for all questions
+const initializeAnswers = () => {
+    let initialAnswers = {};
+
+    for (let i = 0; i < props.questions.length; i++) {
+        let question = props.questions[i];
+        let options = getOptions(question.options);
+
+        if (question.type === 'choice' && options.multiple === true) {
+            // Use an empty array for questions that allow multiple answers
+            initialAnswers[question.id] = [];
+        } else {
+            // Use null for all other questions
+            initialAnswers[question.id] = null;
+        }
+    }
+
+    return initialAnswers;
+};
+
+const answers = ref(initializeAnswers());
+const submissionStatus = ref('');
+const submitted = ref(false);
+
+const isFormCreator = computed(function () {
     return user.value && props.form.user_id === user.value.id;
 });
 
 const showSharePopover = ref(false);
+const copyStatus = ref('Copy');
+
 const formLink = computed(() => {
     return `${window.location.origin}/form/${props.form.id}`;
 });
-const copyStatus = ref('Copy');
 
-const layout = computed(() => (user.value ? AppLayout : GuestLayout));
+const layout = computed(function () {
+    if (user.value) {
+        return AppLayout;
+    } else {
+        return GuestLayout;
+    }
+});
 
 const copyLink = () => {
     if (formLink.value) {
@@ -77,111 +95,153 @@ const copyLink = () => {
             copyStatus.value = 'Copied!';
             setTimeout(() => {
                 copyStatus.value = 'Copy';
-                showSharePopover.value = false;
             }, 2000);
         });
     }
 };
 
 const submitForm = async () => {
-    for (const question of props.questions) {
-        if (question.required) {
-            const answer = answers.value[question.id];
-            if (answer === null || answer === '' || (Array.isArray(answer) && answer.length === 0)) {
-                submissionStatus.value = `Error: The question "${question.title}" is required.`;
+    // check if all required questions have answers
+    for (let i = 0; i < props.questions.length; i++) {
+        let question = props.questions[i];
+
+        if (question.required === true) {
+            let answer = answers.value[question.id];
+
+            let isEmptyAnswer = false;
+
+            if (answer === null || answer === '') {
+                isEmptyAnswer = true;
+            }
+
+            if (Array.isArray(answer) && answer.length === 0) {
+                isEmptyAnswer = true;
+            }
+
+            if (isEmptyAnswer) {
+                submissionStatus.value = 'Error: The question "' + question.title + '" is required.';
                 return;
             }
         }
     }
 
     if (!props.form.user.public_key) {
-        submissionStatus.value = 'Error: Form creator has no public key.';
+        submissionStatus.value = 'Error: Form creator has no public key. Cannot encrypt answers.';
         return;
     }
 
     submissionStatus.value = 'Encrypting and submitting...';
 
     try {
-        // TODO and fix this
-        const publicKey = await openpgp.readKey({ armoredKey: props.form.user.public_key });
+        const publicKey = await openpgp.readKey({
+            armoredKey: props.form.user.public_key,
+        });
 
-        const encryptedAnswers = await Promise.all(
-            props.questions
-                .map((question) => {
-                    const answer = answers.value[question.id];
-                    if (answer === undefined || answer === null || answer === '' || (Array.isArray(answer) && answer.length === 0)) {
-                        return null;
-                    }
-                    return { question, answer };
-                })
-                .filter(Boolean)
-                .map(async ({ question, answer }) => {
-                    const answerString = typeof answer === 'object' ? JSON.stringify(answer) : String(answer);
+        let answersToEncrypt = [];
 
-                    const message = await openpgp.createMessage({ text: answerString });
-                    const encrypted = await openpgp.encrypt({
-                        message,
-                        encryptionKeys: publicKey,
-                    });
+        for (let i = 0; i < props.questions.length; i++) {
+            let question = props.questions[i];
+            let answer = answers.value[question.id];
 
-                    return {
-                        question_id: question.id,
-                        answer: encrypted,
-                    };
-                }),
-        );
+            let hasAnswer = false;
+
+            if (answer !== null && answer !== '') {
+                hasAnswer = true;
+            }
+
+            if (Array.isArray(answer) && answer.length > 0) {
+                hasAnswer = true;
+            }
+
+            if (hasAnswer) {
+                answersToEncrypt.push({
+                    question: question,
+                    answer: answer,
+                });
+            }
+        }
+
+        let encryptedAnswers = [];
+
+        for (let i = 0; i < answersToEncrypt.length; i++) {
+            let item = answersToEncrypt[i];
+            let question = item.question;
+            let answer = item.answer;
+
+            let answerString;
+            if (typeof answer === 'object') {
+                answerString = JSON.stringify(answer);
+            } else {
+                answerString = String(answer);
+            }
+
+            const message = await openpgp.createMessage({
+                text: answerString,
+            });
+
+            const encryptedMessage = await openpgp.encrypt({
+                message: message,
+                encryptionKeys: publicKey,
+            });
+
+            encryptedAnswers.push({
+                question_id: question.id,
+                answer: encryptedMessage,
+            });
+        }
 
         router.post(
             `/form/${props.form.id}/submit`,
             { answers: encryptedAnswers },
             {
-                onSuccess: () => {
+                onSuccess: function () {
                     submitted.value = true;
+                    submissionStatus.value = 'Form submitted successfully!';
                 },
-                onError: (errors) => {
+                onError: function (errors) {
                     console.error('Submission error:', errors);
-                    submissionStatus.value = 'An error occurred during submission.';
+                    submissionStatus.value = 'An error occurred during submission. Please try again.';
                 },
             },
         );
-    } catch (e) {
-        console.error('Encryption failed', e);
+    } catch (error) {
+        console.error(error);
         submissionStatus.value = 'Error: Could not encrypt answers.';
     }
 };
 
-const submitAnotherResponse = () => {
+function submitAnotherResponse() {
     answers.value = initializeAnswers();
     submissionStatus.value = '';
     submitted.value = false;
-};
+}
 
 const showDeleteConfirm = ref(false);
 
-const editForm = () => {
+function editForm() {
     router.visit(`/form/${props.form.id}/edit`);
-};
+}
 
-const deleteForm = () => {
+function deleteForm() {
     router.delete(`/form/${props.form.id}`, {
-        onSuccess: () => {
+        onSuccess: function () {
             router.visit('/dashboard');
         },
-        onError: (errors) => {
+        onError: function (errors) {
             console.error('Delete error:', errors);
             submissionStatus.value = 'An error occurred while deleting the form.';
         },
     });
     showDeleteConfirm.value = false;
-};
+}
 
-const cancelDelete = () => {
+function cancelDelete() {
     showDeleteConfirm.value = false;
-};
+}
 
-const viewAnswers = () => {
+function viewAnswers() {
     router.visit(`/form/${props.form.id}/answers`);
-};
+}
 </script>
 
 <template>
