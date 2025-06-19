@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Answer;
 use App\Models\Form;
+use App\Models\Question;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -20,45 +22,139 @@ class FormController extends Controller
         ]);
     }
 
-    public function edit(Form $form)
+    public function store(Request $request)
     {
-        $questions = $form->questions()->orderBy('order')->get()->map(function ($question) {
-            if ($question->type === 'choice') {
-                $optionsData = json_decode($question->options, true);
-                if ($optionsData && isset($optionsData['items'])) {
-                    $question->options = collect($optionsData['items'])->map(function ($item, $index) {
-                        return [
-                            'id' => $index + 1,
-                            'text' => $item
-                        ];
-                    })->values()->toArray();
+        $validatedData = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'questions' => 'required|array|min:1',
+            'questions.*.title' => 'required|string|max:255',
+            'questions.*.type' => 'required|string|in:text,choice',
+            'questions.*.required' => 'boolean',
+            'questions.*.options' => 'array|required_if:questions.*.type,choice',
+            'questions.*.options.*.text' => 'string|max:255',
+            'questions.*.multipleChoice' => 'boolean',
+        ]);
 
-                    $question->multipleChoice = $optionsData['multiple'] ?? false;
-                } else {
-                    $question->options = [];
-                    $question->multipleChoice = false;
-                }
+        $currentUserId = auth()->id();
+
+        $form = new Form();
+        $form->user_id = $currentUserId;
+        $form->title = $validatedData['title'];
+        $form->description = $validatedData['description'];
+        $form->save();
+
+        $questionOrder = 0;
+
+        foreach ($validatedData['questions'] as $questionData) {
+            $question = new Question();
+
+            $question->form_id = $form->id;
+            $question->title = $questionData['title'];
+            $question->type = $questionData['type'];
+            $question->order = $questionOrder;
+
+            if (isset($questionData['required'])) {
+                $question->required = $questionData['required'];
             } else {
-                $question->options = [];
-                $question->multipleChoice = false;
+                $question->required = false;
             }
 
-            return $question;
-        });
+            if ($questionData['type'] === 'choice') {
+                if (!empty($questionData['options'])) {
+                    $optionTexts = [];
+                    foreach ($questionData['options'] as $option) {
+                        $optionTexts[] = $option['text'];
+                    }
+
+                    $allowMultiple = false;
+                    if (isset($questionData['multipleChoice'])) {
+                        $allowMultiple = $questionData['multipleChoice'];
+                    }
+
+                    $optionsData = [
+                        'items' => $optionTexts,
+                        'multiple' => $allowMultiple
+                    ];
+                    $question->options = json_encode($optionsData);
+                }
+            } else {
+                $question->options = null;
+            }
+
+            $question->save();
+            $questionOrder++;
+        }
+        return redirect()->route('dashboard')->with('success', 'Form created successfully');
+    }
+
+
+    public function edit(Form $form)
+    {
+        if (auth()->id() !== $form->user_id) {
+            abort(403);
+        }
+
+        $questions = Question::where('form_id', $form->id)
+            ->orderBy('order')
+            ->get();
+
+        $processedQuestions = [];
+
+        foreach ($questions as $question) {
+            $questionData = [
+                'id' => $question->id,
+                'title' => $question->title,
+                'type' => $question->type,
+                'required' => $question->required,
+                'order' => $question->order,
+                'options' => [],
+                'multipleChoice' => false
+            ];
+
+            if ($question->type === 'choice') {
+                $optionsJson = $question->options;
+
+                if (!empty($optionsJson)) {
+                    $optionsData = json_decode($optionsJson, true);
+
+                    if ($optionsData && isset($optionsData['items'])) {
+                        $formattedOptions = [];
+                        $optionId = 1;
+
+                        foreach ($optionsData['items'] as $optionText) {
+                            $formattedOptions[] = [
+                                'id' => $optionId,
+                                'text' => $optionText
+                            ];
+                            $optionId++;
+                        }
+
+                        $questionData['options'] = $formattedOptions;
+
+                        if (isset($optionsData['multiple'])) {
+                            $questionData['multipleChoice'] = $optionsData['multiple'];
+                        }
+                    }
+                }
+            }
+
+            $processedQuestions[] = $questionData;
+        }
 
         return Inertia::render('form/EditForm', [
             'form' => $form,
-            'questions' => $questions,
+            'questions' => $processedQuestions,
         ]);
     }
 
     public function update(Request $request, Form $form)
     {
         if (auth()->id() !== $form->user_id) {
-            abort(403, 'Unauthorized action.');
+            abort(403);
         }
 
-        $validated = $request->validate([
+        $validatedData = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'questions' => 'required|array|min:1',
@@ -74,141 +170,166 @@ class FormController extends Controller
             'questions.*.updated_at' => 'nullable|string',
         ]);
 
-        $form->update([
-            'title' => $validated['title'],
-            'description' => $validated['description'],
-        ]);
+        $form->title = $validatedData['title'];
+        $form->description = $validatedData['description'];
+        $form->save();
 
-        $existingQuestionIds = $form->questions()->pluck('id')->toArray();
-        $updatedQuestionIds = [];
+        $currentQuestions = Question::where('form_id', $form->id)->get();
+        $currentQuestionIds = [];
+        foreach ($currentQuestions as $question) {
+            $currentQuestionIds[] = $question->id;
+        }
 
-        foreach ($validated['questions'] as $index => $questionData) {
-            $options = null;
+        $processedQuestionIds = [];
+
+        $questionOrder = 0;
+        foreach ($validatedData['questions'] as $questionData) {
+            $optionsToSave = null;
 
             if ($questionData['type'] === 'choice') {
-                if (is_string($questionData['options']) && !empty($questionData['options'])) {
-                    $options = $questionData['options'];
-                } elseif (is_array($questionData['options']) && !empty($questionData['options'])) {
-                    $options = json_encode([
-                        'items' => collect($questionData['options'])->pluck('text')->toArray(),
-                        'multiple' => $questionData['multipleChoice'] ?? false,
-                    ]);
+                if (isset($questionData['options'])) {
+                    if (is_string($questionData['options']) && !empty($questionData['options'])) {
+                        $optionsToSave = $questionData['options'];
+                    }
+                    else if (is_array($questionData['options']) && !empty($questionData['options'])) {
+                        $optionTexts = [];
+                        foreach ($questionData['options'] as $option) {
+                            if (isset($option['text'])) {
+                                $optionTexts[] = $option['text'];
+                            }
+                        }
+
+                        $allowMultiple = false;
+                        if (isset($questionData['multipleChoice'])) {
+                            $allowMultiple = $questionData['multipleChoice'];
+                        }
+
+                        $optionsArray = [
+                            'items' => $optionTexts,
+                            'multiple' => $allowMultiple
+                        ];
+
+                        $optionsToSave = json_encode($optionsArray);
+                    }
                 }
             }
 
-            // Check if this is an existing question or a new one
-            if (isset($questionData['id']) && in_array($questionData['id'], $existingQuestionIds)) {
-                // Update existing question
-                $question = $form->questions()->find($questionData['id']);
-                $question->update([
-                    'title' => $questionData['title'],
-                    'type' => $questionData['type'],
-                    'options' => $options,
-                    'required' => $questionData['required'] ?? false,
-                    'order' => $index,
-                ]);
-                $updatedQuestionIds[] = $questionData['id'];
+            $isRequired = false;
+            if (isset($questionData['required'])) {
+                $isRequired = $questionData['required'];
+            }
+
+            if (isset($questionData['id']) && in_array($questionData['id'], $currentQuestionIds)) {
+                $existingQuestion = Question::find($questionData['id']);
+
+                if ($existingQuestion) {
+                    $existingQuestion->title = $questionData['title'];
+                    $existingQuestion->type = $questionData['type'];
+                    $existingQuestion->options = $optionsToSave;
+                    $existingQuestion->required = $isRequired;
+                    $existingQuestion->order = $questionOrder;
+                    $existingQuestion->save();
+
+                    $processedQuestionIds[] = $questionData['id'];
+                }
             } else {
-                // Create new question
-                $question = $form->questions()->create([
-                    'title' => $questionData['title'],
-                    'type' => $questionData['type'],
-                    'options' => $options,
-                    'required' => $questionData['required'] ?? false,
-                    'order' => $index,
-                ]);
-                $updatedQuestionIds[] = $question->id;
+                $newQuestion = new Question();
+                $newQuestion->form_id = $form->id;
+                $newQuestion->title = $questionData['title'];
+                $newQuestion->type = $questionData['type'];
+                $newQuestion->options = $optionsToSave;
+                $newQuestion->required = $isRequired;
+                $newQuestion->order = $questionOrder;
+                $newQuestion->save();
+
+                $processedQuestionIds[] = $newQuestion->id;
+            }
+
+            $questionOrder++;
+        }
+
+        $questionsToDelete = [];
+        foreach ($currentQuestionIds as $currentId) {
+            if (!in_array($currentId, $processedQuestionIds)) {
+                $questionsToDelete[] = $currentId;
             }
         }
 
-        // Delete questions that were removed
-        $questionsToDelete = array_diff($existingQuestionIds, $updatedQuestionIds);
         if (!empty($questionsToDelete)) {
-            $form->questions()->whereIn('id', $questionsToDelete)->delete();
+            Question::whereIn('id', $questionsToDelete)->delete();
         }
 
         return redirect()->route('dashboard')->with('success', 'Form updated successfully');
     }
 
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string|max:1000',
-            'questions' => 'required|array|min:1',
-            'questions.*.title' => 'required|string|max:255',
-            'questions.*.type' => 'required|string|in:text,choice',
-            'questions.*.required' => 'boolean',
-            'questions.*.options' => 'array|required_if:questions.*.type,choice',
-            'questions.*.options.*.text' => 'string|max:255',
-            'questions.*.multipleChoice' => 'boolean',
-        ]);
-
-        $form = Form::create([
-            'user_id' => auth()->id(),
-            'title' => $validated['title'],
-            'description' => $validated['description'],
-        ]);
-
-        foreach ($validated['questions'] as $index => $questionData) {
-            $options = null;
-
-            if ($questionData['type'] === 'choice' && !empty($questionData['options'])) {
-                $options = json_encode([
-                    'items' => collect($questionData['options'])->pluck('text')->toArray(),
-                    'multiple' => $questionData['multipleChoice'] ?? false,
-                ]);
-            }
-
-            $form->questions()->create([
-                'title' => $questionData['title'],
-                'type' => $questionData['type'],
-                'options' => $options,
-                'required' => $questionData['required'] ?? false,
-                'order' => $index,
-            ]);
-        }
-
-        return redirect()->route('dashboard')->with('success', 'Form created successfully');
-    }
-
     public function submit(Request $request, Form $form)
     {
-        $validated = $request->validate([
-            'answers' => [
-                'required',
-                'array',
-                function ($attribute, $value, $fail) use ($form) {
-                    $requiredQuestionIds = $form->questions()->where('required', true)->pluck('id');
-                    $submittedQuestionIds = collect($value)->pluck('question_id');
-                    $missingRequiredQuestions = $requiredQuestionIds->diff($submittedQuestionIds);
+        $requiredQuestions = [];
+        $allFormQuestions = Question::where('form_id', $form->id)->get();
 
-                    if ($missingRequiredQuestions->isNotEmpty()) {
-                        $fail('Not all required questions have been answered.');
-                    }
-                },
-            ],
-            'answers.*.question_id' => [
-                'required',
-                'exists:questions,id',
-                function ($attribute, $value, $fail) use ($form) {
-                    if (!$form->questions()->where('id', $value)->exists()) {
-                        $fail("The selected {$attribute} is invalid for this form.");
-                    }
-                },
-            ],
-            'answers.*.answer' => 'required|string',
-        ]);
+        foreach ($allFormQuestions as $question) {
+            if ($question->required) {
+                $requiredQuestions[] = $question->id;
+            }
+        }
 
-        $submissionId = Str::uuid();
+        $submittedAnswers = $request->input('answers', []);
 
-        foreach ($validated['answers'] as $answerData) {
-            $form->answers()->create([
-                'question_id' => $answerData['question_id'],
-                'answer' => $answerData['answer'],
-                'form_id' => $form->id,
-                'submission_id' => $submissionId,
-            ]);
+        if (empty($submittedAnswers)) {
+            return redirect()->back()->withErrors(['answers' => 'Please answer at least one question']);
+        }
+
+        // Find all answered question IDs
+        $answeredQuestionIds = [];
+        foreach ($submittedAnswers as $answer) {
+            if (isset($answer['question_id'])) {
+                $answeredQuestionIds[] = $answer['question_id'];
+            }
+        }
+
+        // Find missing required questions
+        $missingRequiredQuestions = [];
+        foreach ($requiredQuestions as $requiredId) {
+            if (!in_array($requiredId, $answeredQuestionIds)) {
+                $missingRequiredQuestions[] = $requiredId;
+            }
+        }
+
+        if (!empty($missingRequiredQuestions)) {
+            return redirect()->back()->withErrors(['answers' => 'Not all required questions have been answered.']);
+        }
+
+        foreach ($submittedAnswers as $answerData) {
+            if (!isset($answerData['question_id'])) {
+                return redirect()->back()->withErrors(['answers' => 'Each answer must have a question ID']);
+            }
+
+            if (empty($answerData['answer'])) {
+                return redirect()->back()->withErrors(['answers' => 'Each answer must have text']);
+            }
+
+            $questionExists = Question::where('id', $answerData['question_id'])->exists();
+            if (!$questionExists) {
+                return redirect()->back()->withErrors(['answers' => 'Invalid question ID provided']);
+            }
+
+            $questionBelongsToForm = Question::where('id', $answerData['question_id'])
+                ->where('form_id', $form->id)
+                ->exists();
+            if (!$questionBelongsToForm) {
+                return redirect()->back()->withErrors(['answers' => 'Question does not belong to this form']);
+            }
+        }
+
+        $submissionId = Str::uuid()->toString();
+
+        foreach ($submittedAnswers as $answerData) {
+            $newAnswer = new Answer();
+            $newAnswer->question_id = $answerData['question_id'];
+            $newAnswer->answer = $answerData['answer'];
+            $newAnswer->form_id = $form->id;
+            $newAnswer->submission_id = $submissionId;
+            $newAnswer->save();
         }
 
         return redirect()->back()->with('success', 'Form submitted successfully!');
