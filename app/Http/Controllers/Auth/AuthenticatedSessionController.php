@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\FakeSalt;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -12,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
+use Random\RandomException;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -44,6 +46,9 @@ class AuthenticatedSessionController extends Controller
         ]);
     }
 
+    /**
+     * @throws RandomException
+     */
     public function pullSalt(Request $request): JsonResponse
     {
         $request->validate([
@@ -52,17 +57,32 @@ class AuthenticatedSessionController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        // A random salt is returned if the user is not found.
-        if (! $user) {
-            $randomSalt = bin2hex(random_bytes(32));
-
+        // Return the user's salt if the user exists
+        if ($user) {
             return response()->json([
-                'salt' => $randomSalt,
+                'salt' => $user->salt,
             ]);
         }
 
+        // If user doesn't exist, check if there is already a fake salt for this email
+        $fakeSalt = FakeSalt::where('email', $request->email)->first();
+
+        if ($fakeSalt) {
+            return response()->json([
+                'salt' => $fakeSalt->salt,
+            ]);
+        }
+
+        // If no fake salt exists, create and store a new one
+        $randomSalt = bin2hex(random_bytes(32));
+
+        FakeSalt::create([
+            'email' => $request->email,
+            'salt' => $randomSalt,
+        ]);
+
         return response()->json([
-            'salt' => $user->salt,
+            'salt' => $randomSalt,
         ]);
     }
 
