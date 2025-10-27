@@ -21,6 +21,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('form/{form}', [FormController::class, 'destroy'])->name('form.destroy');
     Route::get('/2fa', [TwoFactorController::class, 'show'])->name('2fa.show');
     Route::post('/2fa/setup', [TwoFactorController::class, 'setup'])->name('2fa.setup');
+    Route::post('/2fa/disable', [TwoFactorController::class, 'disable'])->name('2fa.disable');
 });
 
 Route::get('form/{id}', [FormController::class, 'show'])->name('form.view');

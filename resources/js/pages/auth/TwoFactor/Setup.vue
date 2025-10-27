@@ -76,6 +76,7 @@ const submit = () => {
                         v-model="form.otp"
                         placeholder="000000"
                         class="text-center text-lg tracking-widest"
+                        autocomplete="off"
                     />
                     <InputError :message="form.errors.otp" />
                 </div>

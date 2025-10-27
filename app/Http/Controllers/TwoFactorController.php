@@ -120,4 +120,23 @@ class TwoFactorController extends Controller
 
         return back()->withErrors(['otp' => 'Invalid verification code.']);
     }
+
+    public function disable(Request $request)
+    {
+        $request->validate([
+            'password' => ['required'],
+        ]);
+
+        $hashedPassword = \Hash::make($request->password);
+
+        if(!$hashedPassword === $request->password) {
+            return back()->withErrors(['password' => 'Incorrect password.']);
+        }
+
+        $user = $request->user();
+        $user->google2fa_secret = null;
+        $user->save();
+
+        return redirect()->back()->with('success', '2FA disabled successfully.');
+    }
 }

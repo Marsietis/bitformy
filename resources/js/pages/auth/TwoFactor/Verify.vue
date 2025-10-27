@@ -77,6 +77,7 @@ const submit = async () => {
                         placeholder="000000"
                         class="text-center text-2xl"
                         :disabled="form.processing"
+                        autocomplete="off"
                     />
                     <InputError :message="form.errors.otp" />
                 </div>
