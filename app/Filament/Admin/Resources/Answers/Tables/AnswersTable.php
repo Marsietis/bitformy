@@ -18,6 +18,8 @@ class AnswersTable
     {
         return $table
             ->columns([
+                TextColumn::make('id')
+                    ->sortable(),
                 TextColumn::make('question.title')
                     ->searchable(),
                 TextColumn::make('form_id'),
