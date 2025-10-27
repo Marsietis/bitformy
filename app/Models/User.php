@@ -11,10 +11,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * @property mixed $google2fa_secret
+ */
 class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, SoftDeletes;
+
 
     /**
      * The attributes that are mass assignable.
@@ -28,6 +32,7 @@ class User extends Authenticatable implements FilamentUser
         'salt',
         'private_key',
         'public_key',
+        'google2fa_secret',
     ];
 
     /**
