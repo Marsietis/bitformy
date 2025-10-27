@@ -72,7 +72,7 @@ class TwoFactorController extends Controller
         $google2fa = app('pragmarx.google2fa');
 
         if ($google2fa->verifyKey(auth()->user()->google2fa_secret, $request->otp)) {
-            return redirect('/dashboard')->with('success', '2FA enabled successfully.');
+            return redirect('/2fa/recovery-keys')->with('success', '2FA enabled successfully.');
         }
 
         return back()->withErrors(['otp' => 'Invalid verification code.']);
@@ -137,6 +137,7 @@ class TwoFactorController extends Controller
 
         $user = $request->user();
         $user->google2fa_secret = null;
+        $user->recoveryKeys()->delete();
         $user->save();
 
         return redirect()->back()->with('success', '2FA disabled successfully.');
@@ -145,6 +146,11 @@ class TwoFactorController extends Controller
     public function generateRecoveryKeys(Request $request)
     {
         $user = $request->user();
+
+        // Only generate recovery keys if 2FA is enabled
+        if (!$user->google2fa_secret) {
+            return redirect()->back()->withErrors(['2fa' => 'Two-Factor Authentication is not enabled.']);
+        }
 
         // Delete existing recovery keys
         $user->recoveryKeys()->delete();
