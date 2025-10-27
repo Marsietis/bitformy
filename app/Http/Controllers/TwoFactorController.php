@@ -14,7 +14,6 @@ use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Writer;
-use Random\RandomException;
 
 class TwoFactorController extends Controller
 {
@@ -171,5 +170,52 @@ class TwoFactorController extends Controller
         return Inertia::render('auth/TwoFactor/RecoveryKeys', [
             'recoveryKeys' => $recoveryKeysArray,
         ]);
+    }
+
+    public function recoverAccount(Request $request)
+    {
+        $request->validate([
+            'recovery_key' => 'required|string',
+        ]);
+
+        // Check if user is in the 2FA flow
+        if (!$request->session()->has('2fa_user_id')) {
+            return redirect()->route('login');
+        }
+
+        $userId = $request->session()->get('2fa_user_id');
+        $user = \App\Models\User::findOrFail($userId);
+
+        $recoveryKeyRecord = $user->recoveryKeys()
+            ->get()
+            ->first(function ($key) use ($request) {
+                return \Hash::check($request->recovery_key, $key->recovery_key);
+            });
+
+        if ($recoveryKeyRecord) {
+            // Delete the used recovery key
+            $recoveryKeyRecord->delete();
+
+            // Remove temporary session data
+            $request->session()->forget('2fa_user_id');
+
+            // Log the user in
+            Auth::login($user);
+            $request->session()->regenerate();
+
+            return redirect('/settings/security')->with('success', 'Logged in using recovery key.');
+        }
+
+        return back()->withErrors(['recovery_key' => 'Invalid recovery key.']);
+    }
+
+    public function showRecoveryForm(Request $request)
+    {
+        // Check if user is in the 2FA flow
+        if (!$request->session()->has('2fa_user_id')) {
+            return redirect()->route('login');
+        }
+
+        return Inertia::render('auth/TwoFactor/Recover');
     }
 }

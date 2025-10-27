@@ -89,6 +89,13 @@ const submit = async () => {
             </div>
 
             <div class="text-center text-sm text-muted-foreground">
+                Lost your authenticator?
+                <TextLink :href="route('2fa.recover.form')">
+                    Use recovery key
+                </TextLink>
+            </div>
+
+            <div class="text-center text-sm text-muted-foreground">
                 Having trouble?
                 <TextLink :href="route('logout')" method="post" as="button" type="button">
                     Log out

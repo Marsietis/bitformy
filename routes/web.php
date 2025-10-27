@@ -30,6 +30,8 @@ Route::post('form/{form}/submit', [FormController::class, 'submit'])->name('form
 
 Route::get('/2fa/verify', [TwoFactorController::class, 'verifyForm'])->name('2fa.verify.form');
 Route::post('/2fa/verify', [TwoFactorController::class, 'verifyCode'])->name('2fa.verify');
+Route::get('/2fa/recover', [TwoFactorController::class, 'showRecoveryForm'])->name('2fa.recover.form');
+Route::post('/2fa/recover', [TwoFactorController::class, 'recoverAccount'])->name('2fa.recover');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
