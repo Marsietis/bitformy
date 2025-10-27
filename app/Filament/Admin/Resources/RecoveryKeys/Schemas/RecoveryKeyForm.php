@@ -1,13 +1,12 @@
 <?php
 
-namespace App\Filament\Admin\Resources\Forms\Schemas;
+namespace App\Filament\Admin\Resources\RecoveryKeys\Schemas;
 
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 
-class FormForm
+class RecoveryKeyForm
 {
     public static function configure(Schema $schema): Schema
     {
@@ -16,10 +15,8 @@ class FormForm
                 Select::make('user_id')
                     ->relationship('user', 'name')
                     ->required(),
-                TextInput::make('title')
+                TextInput::make('recovery_key')
                     ->required(),
-                Textarea::make('description')
-                    ->columnSpanFull(),
             ]);
     }
 }

@@ -39,6 +39,19 @@ class AuthenticatedSessionController extends Controller
 
         $user = Auth::user();
 
+        // Check if user has 2FA enabled
+        if ($user->google2fa_secret) {
+            // Mark user as partially authenticated
+            $request->session()->put('2fa_user_id', $user->id);
+            Auth::logout();
+
+            return response()->json([
+                'success' => true,
+                'requires_2fa' => true,
+                'redirect_url' => route('2fa.verify.form'),
+            ]);
+        }
+
         return response()->json([
             'success' => true,
             'private_key' => $user->private_key,

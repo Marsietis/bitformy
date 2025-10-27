@@ -10,16 +10,21 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { type BreadcrumbItem } from '@/types';
+import Disable2fa from '@/components/Disable2fa.vue';
 
 const breadcrumbItems: BreadcrumbItem[] = [
     {
-        title: 'Password settings',
-        href: '/settings/password',
+        title: 'Security settings',
+        href: '/settings/security',
     },
 ];
 
 const passwordInput = ref<HTMLInputElement | null>(null);
 const currentPasswordInput = ref<HTMLInputElement | null>(null);
+
+const props = defineProps({
+    userHas2fa: Boolean,
+});
 
 const form = useForm({
     current_password: '',
@@ -52,9 +57,16 @@ const updatePassword = () => {
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
-        <Head title="Password settings" />
+        <Head title="Security settings" />
 
         <SettingsLayout>
+            <div>
+                <div class="grid gap-4" v-if="!$page.props.userHas2fa">
+                <HeadingSmall title="Two-Factor Authentication" description="Add another layer of security to your account. You’ll need to verify yourself with 2FA every time you sign in." />
+                <a href="/2fa"><Button>Set up 2FA</Button></a>
+                </div>
+                <div v-else><Disable2fa /></div>
+            </div>
             <div class="space-y-6">
                 <HeadingSmall title="Update password" description="Ensure your account is using a long, random password to stay secure" />
 
