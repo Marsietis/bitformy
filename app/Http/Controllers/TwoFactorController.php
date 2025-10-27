@@ -33,7 +33,7 @@ class TwoFactorController extends Controller
         $secret = $user->google2fa_secret;
         $qrImage = $this->generateQRCode($user->email, $secret);
 
-        return Inertia::render('auth/TwoFactor', [
+        return Inertia::render('auth/TwoFactor/Setup', [
             'qrImage' => $qrImage,
             'secret' => $secret,
         ]);
