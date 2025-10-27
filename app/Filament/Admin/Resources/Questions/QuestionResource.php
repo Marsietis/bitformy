@@ -22,9 +22,14 @@ class QuestionResource extends Resource
 {
     protected static ?string $model = Question::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedQuestionMarkCircle;
+    protected static string | BackedEnum | null $activeNavigationIcon = Heroicon::QuestionMarkCircle;
+
+    protected static ?int $navigationSort = 3;
 
     protected static ?string $recordTitleAttribute = 'Questions';
+
+    protected static string|null|\UnitEnum $navigationGroup = 'Forms';
 
     public static function form(Schema $schema): Schema
     {

@@ -22,9 +22,15 @@ class AnswerResource extends Resource
 {
     protected static ?string $model = Answer::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShieldCheck;
+    protected static string | BackedEnum | null $activeNavigationIcon = Heroicon::ShieldCheck;
 
     protected static ?string $recordTitleAttribute = 'Answers';
+
+    protected static ?int $navigationSort = 4;
+
+    protected static string|null|\UnitEnum $navigationGroup = 'Forms';
+
 
     public static function form(Schema $schema): Schema
     {
