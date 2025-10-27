@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use PragmaRX\Google2FA\Exceptions\IncompatibleWithGoogleAuthenticatorException;
 use PragmaRX\Google2FA\Exceptions\InvalidCharactersException;
@@ -13,6 +14,7 @@ use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Writer;
+use Random\RandomException;
 
 class TwoFactorController extends Controller
 {
@@ -138,5 +140,30 @@ class TwoFactorController extends Controller
         $user->save();
 
         return redirect()->back()->with('success', '2FA disabled successfully.');
+    }
+
+    public function generateRecoveryKeys(Request $request)
+    {
+        $user = $request->user();
+
+        // Delete existing recovery keys
+        $user->recoveryKeys()->delete();
+
+        $recoveryKeysArray = [];
+
+        for ($i = 0; $i < 8; $i++) {
+            $plainKey = strtoupper(Str::random(8) . '-' . Str::random(8));
+
+            $user->recoveryKeys()->create([
+                'recovery_key' => bcrypt($plainKey),
+            ]);
+
+            // Keep the plain version to show to the user
+            $recoveryKeysArray[] = $plainKey;
+        }
+
+        return Inertia::render('auth/TwoFactor/RecoveryKeys', [
+            'recoveryKeys' => $recoveryKeysArray,
+        ]);
     }
 }
