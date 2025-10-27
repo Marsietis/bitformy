@@ -38,7 +38,7 @@ class FormController extends Controller
 
         $currentUserId = auth()->id();
 
-        $form = new Form();
+        $form = new Form;
         $form->user_id = $currentUserId;
         $form->title = $validatedData['title'];
         $form->description = $validatedData['description'];
@@ -47,7 +47,7 @@ class FormController extends Controller
         $questionOrder = 0;
 
         foreach ($validatedData['questions'] as $questionData) {
-            $question = new Question();
+            $question = new Question;
 
             $question->form_id = $form->id;
             $question->title = $questionData['title'];
@@ -61,7 +61,7 @@ class FormController extends Controller
             }
 
             if ($questionData['type'] === 'choice') {
-                if (!empty($questionData['options'])) {
+                if (! empty($questionData['options'])) {
                     $optionTexts = [];
                     foreach ($questionData['options'] as $option) {
                         $optionTexts[] = $option['text'];
@@ -74,7 +74,7 @@ class FormController extends Controller
 
                     $optionsData = [
                         'items' => $optionTexts,
-                        'multiple' => $allowMultiple
+                        'multiple' => $allowMultiple,
                     ];
                     $question->options = json_encode($optionsData);
                 }
@@ -85,9 +85,9 @@ class FormController extends Controller
             $question->save();
             $questionOrder++;
         }
+
         return redirect()->route('dashboard')->with('success', 'Form created successfully');
     }
-
 
     public function edit(Form $form)
     {
@@ -109,13 +109,13 @@ class FormController extends Controller
                 'required' => $question->required,
                 'order' => $question->order,
                 'options' => [],
-                'multipleChoice' => false
+                'multipleChoice' => false,
             ];
 
             if ($question->type === 'choice') {
                 $optionsJson = $question->options;
 
-                if (!empty($optionsJson)) {
+                if (! empty($optionsJson)) {
                     $optionsData = json_decode($optionsJson, true);
 
                     if ($optionsData && isset($optionsData['items'])) {
@@ -125,7 +125,7 @@ class FormController extends Controller
                         foreach ($optionsData['items'] as $optionText) {
                             $formattedOptions[] = [
                                 'id' => $optionId,
-                                'text' => $optionText
+                                'text' => $optionText,
                             ];
                             $optionId++;
                         }
@@ -188,10 +188,9 @@ class FormController extends Controller
 
             if ($questionData['type'] === 'choice') {
                 if (isset($questionData['options'])) {
-                    if (is_string($questionData['options']) && !empty($questionData['options'])) {
+                    if (is_string($questionData['options']) && ! empty($questionData['options'])) {
                         $optionsToSave = $questionData['options'];
-                    }
-                    else if (is_array($questionData['options']) && !empty($questionData['options'])) {
+                    } elseif (is_array($questionData['options']) && ! empty($questionData['options'])) {
                         $optionTexts = [];
                         foreach ($questionData['options'] as $option) {
                             if (isset($option['text'])) {
@@ -206,7 +205,7 @@ class FormController extends Controller
 
                         $optionsArray = [
                             'items' => $optionTexts,
-                            'multiple' => $allowMultiple
+                            'multiple' => $allowMultiple,
                         ];
 
                         $optionsToSave = json_encode($optionsArray);
@@ -233,7 +232,7 @@ class FormController extends Controller
                     $processedQuestionIds[] = $questionData['id'];
                 }
             } else {
-                $newQuestion = new Question();
+                $newQuestion = new Question;
                 $newQuestion->form_id = $form->id;
                 $newQuestion->title = $questionData['title'];
                 $newQuestion->type = $questionData['type'];
@@ -250,12 +249,12 @@ class FormController extends Controller
 
         $questionsToDelete = [];
         foreach ($currentQuestionIds as $currentId) {
-            if (!in_array($currentId, $processedQuestionIds)) {
+            if (! in_array($currentId, $processedQuestionIds)) {
                 $questionsToDelete[] = $currentId;
             }
         }
 
-        if (!empty($questionsToDelete)) {
+        if (! empty($questionsToDelete)) {
             Question::whereIn('id', $questionsToDelete)->delete();
         }
 
@@ -290,17 +289,17 @@ class FormController extends Controller
         // Find missing required questions
         $missingRequiredQuestions = [];
         foreach ($requiredQuestions as $requiredId) {
-            if (!in_array($requiredId, $answeredQuestionIds)) {
+            if (! in_array($requiredId, $answeredQuestionIds)) {
                 $missingRequiredQuestions[] = $requiredId;
             }
         }
 
-        if (!empty($missingRequiredQuestions)) {
+        if (! empty($missingRequiredQuestions)) {
             return redirect()->back()->withErrors(['answers' => 'Not all required questions have been answered.']);
         }
 
         foreach ($submittedAnswers as $answerData) {
-            if (!isset($answerData['question_id'])) {
+            if (! isset($answerData['question_id'])) {
                 return redirect()->back()->withErrors(['answers' => 'Each answer must have a question ID']);
             }
 
@@ -309,14 +308,14 @@ class FormController extends Controller
             }
 
             $questionExists = Question::where('id', $answerData['question_id'])->exists();
-            if (!$questionExists) {
+            if (! $questionExists) {
                 return redirect()->back()->withErrors(['answers' => 'Invalid question ID provided']);
             }
 
             $questionBelongsToForm = Question::where('id', $answerData['question_id'])
                 ->where('form_id', $form->id)
                 ->exists();
-            if (!$questionBelongsToForm) {
+            if (! $questionBelongsToForm) {
                 return redirect()->back()->withErrors(['answers' => 'Question does not belong to this form']);
             }
         }
@@ -324,7 +323,7 @@ class FormController extends Controller
         $submissionId = Str::uuid()->toString();
 
         foreach ($submittedAnswers as $answerData) {
-            $newAnswer = new Answer();
+            $newAnswer = new Answer;
             $newAnswer->question_id = $answerData['question_id'];
             $newAnswer->answer = $answerData['answer'];
             $newAnswer->form_id = $form->id;
@@ -381,6 +380,7 @@ class FormController extends Controller
 
         $answers = $form->answers()->get();
         $questions = $form->questions()->orderBy('order')->get();
+
         return Inertia::render('form/Answers', ['answers' => $answers, 'questions' => $questions, 'form' => $form]);
     }
 }

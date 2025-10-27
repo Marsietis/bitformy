@@ -8,8 +8,6 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -32,7 +30,7 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:64',
-            'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
+            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password_validator' => 'required|string|size:64|regex:/^[a-f0-9]+$/',
             'salt' => 'required|string|size:64|regex:/^[a-f0-9]+$/',
             'public_key' => 'required|string|min:200|max:1000|regex:/^-----BEGIN PGP PUBLIC KEY BLOCK-----.*-----END PGP PUBLIC KEY BLOCK-----$/s',
@@ -49,7 +47,6 @@ class RegisteredUserController extends Controller
             'private_key' => $request->private_key,
             'public_key' => $request->public_key,
         ]);
-
 
         event(new Registered($user));
 

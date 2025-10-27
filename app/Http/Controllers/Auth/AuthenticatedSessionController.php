@@ -40,7 +40,7 @@ class AuthenticatedSessionController extends Controller
         return response()->json([
             'success' => true,
             'private_key' => $user->private_key,
-            'redirect_url' => route('dashboard', absolute: false)
+            'redirect_url' => route('dashboard', absolute: false),
         ]);
     }
 
@@ -53,8 +53,9 @@ class AuthenticatedSessionController extends Controller
         $user = User::where('email', $request->email)->first();
 
         // A random salt is returned if the user is not found.
-        if (!$user) {
+        if (! $user) {
             $randomSalt = bin2hex(random_bytes(32));
+
             return response()->json([
                 'salt' => $randomSalt,
             ]);

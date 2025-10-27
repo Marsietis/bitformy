@@ -19,7 +19,9 @@ class Form extends Model
     ];
 
     protected $primaryKey = 'id';
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected static function boot(): void
@@ -27,7 +29,7 @@ class Form extends Model
         parent::boot();
 
         static::creating(function ($model) {
-            $model->id = (string)\Illuminate\Support\Str::uuid();
+            $model->id = (string) \Illuminate\Support\Str::uuid();
         });
     }
 
@@ -41,8 +43,8 @@ class Form extends Model
         return $this->hasMany(Question::class);
     }
 
-    function answers(): HasManyThrough
+    public function answers(): HasManyThrough
     {
-        return $this->hasManyThrough(Answer::class, Question::class,);
+        return $this->hasManyThrough(Answer::class, Question::class);
     }
 }
