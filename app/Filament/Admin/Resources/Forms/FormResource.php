@@ -23,7 +23,8 @@ class FormResource extends Resource
     protected static ?string $model = Form::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
-    protected static string | BackedEnum | null $activeNavigationIcon = Heroicon::DocumentText;
+
+    protected static string|BackedEnum|null $activeNavigationIcon = Heroicon::DocumentText;
 
     protected static ?int $navigationSort = 2;
 

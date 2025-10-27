@@ -2,6 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Writer;
+use Google2FA;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -9,11 +14,6 @@ use Inertia\Inertia;
 use PragmaRX\Google2FA\Exceptions\IncompatibleWithGoogleAuthenticatorException;
 use PragmaRX\Google2FA\Exceptions\InvalidCharactersException;
 use PragmaRX\Google2FA\Exceptions\SecretKeyTooShortException;
-use Google2FA;
-use BaconQrCode\Renderer\ImageRenderer;
-use BaconQrCode\Renderer\RendererStyle\RendererStyle;
-use BaconQrCode\Renderer\Image\SvgImageBackEnd;
-use BaconQrCode\Writer;
 
 class TwoFactorController extends Controller
 {
@@ -26,7 +26,7 @@ class TwoFactorController extends Controller
     {
         $user = $request->user();
 
-        if (!$user->google2fa_secret) {
+        if (! $user->google2fa_secret) {
             $user->google2fa_secret = Google2FA::generateSecretKey();
             $user->save();
         }
@@ -50,11 +50,12 @@ class TwoFactorController extends Controller
 
         $renderer = new ImageRenderer(
             new RendererStyle(200),
-            new SvgImageBackEnd()
+            new SvgImageBackEnd
         );
 
         $writer = new Writer($renderer);
-        return 'data:image/svg+xml;base64,' . base64_encode($writer->writeString($qrContent));
+
+        return 'data:image/svg+xml;base64,'.base64_encode($writer->writeString($qrContent));
     }
 
     /**
@@ -80,7 +81,7 @@ class TwoFactorController extends Controller
     public function verifyForm(Request $request)
     {
         // Check if user is in the 2FA flow
-        if (!$request->session()->has('2fa_user_id')) {
+        if (! $request->session()->has('2fa_user_id')) {
             return redirect()->route('login');
         }
 
@@ -97,7 +98,7 @@ class TwoFactorController extends Controller
         $request->validate(['otp' => 'required|digits:6']);
 
         // Check if user is in the 2FA flow
-        if (!$request->session()->has('2fa_user_id')) {
+        if (! $request->session()->has('2fa_user_id')) {
             return back()->withErrors(['otp' => 'Session expired. Please log in again.']);
         }
 
@@ -130,7 +131,7 @@ class TwoFactorController extends Controller
 
         $hashedPassword = \Hash::make($request->password);
 
-        if(!$hashedPassword === $request->password) {
+        if (! $hashedPassword === $request->password) {
             return back()->withErrors(['password' => 'Incorrect password.']);
         }
 
@@ -147,7 +148,7 @@ class TwoFactorController extends Controller
         $user = $request->user();
 
         // Only generate recovery keys if 2FA is enabled
-        if (!$user->google2fa_secret) {
+        if (! $user->google2fa_secret) {
             return redirect()->back()->withErrors(['2fa' => 'Two-Factor Authentication is not enabled.']);
         }
 
@@ -157,7 +158,7 @@ class TwoFactorController extends Controller
         $recoveryKeysArray = [];
 
         for ($i = 0; $i < 8; $i++) {
-            $plainKey = strtoupper(Str::random(8) . '-' . Str::random(8));
+            $plainKey = strtoupper(Str::random(8).'-'.Str::random(8));
 
             $user->recoveryKeys()->create([
                 'recovery_key' => bcrypt($plainKey),
@@ -179,7 +180,7 @@ class TwoFactorController extends Controller
         ]);
 
         // Check if user is in the 2FA flow
-        if (!$request->session()->has('2fa_user_id')) {
+        if (! $request->session()->has('2fa_user_id')) {
             return redirect()->route('login');
         }
 
@@ -212,7 +213,7 @@ class TwoFactorController extends Controller
     public function showRecoveryForm(Request $request)
     {
         // Check if user is in the 2FA flow
-        if (!$request->session()->has('2fa_user_id')) {
+        if (! $request->session()->has('2fa_user_id')) {
             return redirect()->route('login');
         }
 

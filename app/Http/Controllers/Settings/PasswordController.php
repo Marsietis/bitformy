@@ -18,6 +18,7 @@ class PasswordController extends Controller
     public function edit(): Response
     {
         $userHas2fa = auth()->user()->google2fa_secret !== null;
+
         return Inertia::render('settings/Password')->with('userHas2fa', $userHas2fa);
     }
 
