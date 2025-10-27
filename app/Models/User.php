@@ -34,7 +34,6 @@ class User extends Authenticatable implements FilamentUser
         'private_key',
         'public_key',
         'google2fa_secret',
-        'recovery_key',
     ];
 
     /**
