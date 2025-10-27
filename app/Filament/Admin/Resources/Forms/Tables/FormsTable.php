@@ -19,10 +19,11 @@ class FormsTable
         return $table
             ->columns([
                 TextColumn::make('id')
-                    ->label('ID'),
-                TextColumn::make('user.name')
-                    ->searchable(),
+                    ->label('ID')
+                    ->toggleable(),
                 TextColumn::make('title')
+                    ->searchable(),
+                TextColumn::make('user.name')
                     ->searchable(),
                 TextColumn::make('created_at')
                     ->dateTime()

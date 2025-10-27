@@ -29,7 +29,8 @@ class QuestionsTable
                     ->boolean(),
                 TextColumn::make('order')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
