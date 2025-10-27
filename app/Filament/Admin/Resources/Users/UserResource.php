@@ -26,7 +26,7 @@ class UserResource extends Resource
     protected static string | BackedEnum | null $activeNavigationIcon = Heroicon::User;
 
     protected static ?int $navigationSort = 1;
-    protected static ?string $recordTitleAttribute = 'User';
+    protected static ?string $recordTitleAttribute = 'name';
 
     public static function form(Schema $schema): Schema
     {
@@ -48,6 +48,11 @@ class UserResource extends Resource
         return [
             //
         ];
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['name', 'email'];
     }
 
     public static function getPages(): array

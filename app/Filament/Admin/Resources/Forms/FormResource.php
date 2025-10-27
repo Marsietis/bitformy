@@ -29,7 +29,7 @@ class FormResource extends Resource
 
     protected static string|null|\UnitEnum $navigationGroup = 'Forms';
 
-    protected static ?string $recordTitleAttribute = 'Forms';
+    protected static ?string $recordTitleAttribute = 'title';
 
     public static function form(Schema $schema): Schema
     {
@@ -51,6 +51,11 @@ class FormResource extends Resource
         return [
             //
         ];
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['title', 'id', 'user.name'];
     }
 
     public static function getPages(): array

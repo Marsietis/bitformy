@@ -25,7 +25,7 @@ class AnswerResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShieldCheck;
     protected static string | BackedEnum | null $activeNavigationIcon = Heroicon::ShieldCheck;
 
-    protected static ?string $recordTitleAttribute = 'Answers';
+    protected static ?string $recordTitleAttribute = 'answer';
 
     protected static ?int $navigationSort = 4;
 

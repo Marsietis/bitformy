@@ -27,7 +27,7 @@ class QuestionResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
-    protected static ?string $recordTitleAttribute = 'Questions';
+    protected static ?string $recordTitleAttribute = 'title';
 
     protected static string|null|\UnitEnum $navigationGroup = 'Forms';
 
@@ -44,6 +44,11 @@ class QuestionResource extends Resource
     public static function table(Table $table): Table
     {
         return QuestionsTable::configure($table);
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['title', 'form.title'];
     }
 
     public static function getRelations(): array
