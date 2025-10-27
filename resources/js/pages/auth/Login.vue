@@ -26,7 +26,7 @@ const form = useForm({
 const submit = async () => {
     form.processing = true;
     form.clearErrors();
-    
+
     try {
         const response = await axios.post(route('pull-salt'), {
             email: form.email,
@@ -44,12 +44,20 @@ const submit = async () => {
         });
 
         if (loginResponse.data.success) {
-            const encryptedPrivateKey = JSON.parse(loginResponse.data.private_key);
-            const decryptedPrivateKey = await decryptWithAes(encryptedPrivateKey, passwordHash);
-            
-            sessionStorage.setItem('privateKey', decryptedPrivateKey);
-            
-            window.location.href = loginResponse.data.redirect_url;
+            // Check if 2FA is required
+            if (loginResponse.data.requires_2fa) {
+                // Store password hash temporarily for later private key decryption
+                sessionStorage.setItem('tempPasswordHash', passwordHash);
+                window.location.href = loginResponse.data.redirect_url;
+            } else {
+                // No 2FA, proceed with normal login
+                const encryptedPrivateKey = JSON.parse(loginResponse.data.private_key);
+                const decryptedPrivateKey = await decryptWithAes(encryptedPrivateKey, passwordHash);
+
+                sessionStorage.setItem('privateKey', decryptedPrivateKey);
+
+                window.location.href = loginResponse.data.redirect_url;
+            }
         }
     } catch (error: any) {
         form.setError('email', 'Invalid email or password');
