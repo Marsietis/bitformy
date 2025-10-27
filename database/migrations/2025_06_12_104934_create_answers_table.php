@@ -15,6 +15,7 @@ return new class extends Migration
             $table->uuid('submission_id')->nullable(false);
             $table->text('answer')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
