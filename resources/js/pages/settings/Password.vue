@@ -60,8 +60,8 @@ const updatePassword = () => {
         <Head title="Security settings" />
 
         <SettingsLayout>
-            <div class="space-y-6">
-                <div v-if="!$page.props.userHas2fa">
+            <div>
+                <div class="grid gap-4" v-if="!$page.props.userHas2fa">
                 <HeadingSmall title="Two-Factor Authentication" description="Add another layer of security to your account. You’ll need to verify yourself with 2FA every time you sign in." />
                 <a href="/2fa"><Button>Set up 2FA</Button></a>
                 </div>
