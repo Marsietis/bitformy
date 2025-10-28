@@ -319,14 +319,14 @@ onMounted(() => {
 <template>
     <Head :title="`Answers for ${form.title}`" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="min-h-screen bg-gray-50/50">
+        <div class="min-h-screen bg-muted/40 dark:bg-background">
             <div class="mx-auto max-w-5xl p-6">
                 <!-- Header Card -->
-                <div class="mb-6 rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+                <div class="mb-6 rounded-xl border border-border bg-card p-8 shadow-sm">
                     <div class="flex items-start justify-between">
                         <div>
-                            <h1 class="text-3xl font-bold text-gray-900">Answers for {{ form.title }}</h1>
-                            <p v-if="form.description" class="mt-3 text-lg text-gray-600">{{ form.description }}</p>
+                            <h1 class="text-3xl font-bold text-foreground">Answers for {{ form.title }}</h1>
+                            <p v-if="form.description" class="mt-3 text-lg text-muted-foreground">{{ form.description }}</p>
                         </div>
 
                         <!-- Export Dropdown -->
@@ -346,66 +346,66 @@ onMounted(() => {
                             <!-- Export Options Modal -->
                             <div
                                 v-if="showExportOptions"
-                                class="absolute top-full right-0 z-10 mt-2 w-80 rounded-xl border border-gray-200 bg-white shadow-lg"
+                                class="absolute top-full right-0 z-10 mt-2 w-80 rounded-xl border border-border bg-card shadow-lg"
                             >
                                 <div class="p-6">
-                                    <h3 class="mb-4 text-lg font-semibold text-gray-900">Export Options</h3>
+                                    <h3 class="mb-4 text-lg font-semibold text-foreground">Export Options</h3>
 
                                     <!-- Format Selection -->
                                     <div class="mb-6">
-                                        <Label class="mb-3 block text-sm font-medium text-gray-700">Export Format</Label>
+                                        <Label class="mb-3 block text-sm font-medium text-foreground">Export Format</Label>
                                         <div class="space-y-2">
-                                            <label class="flex cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-gray-50">
+                                            <label class="flex cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-muted">
                                                 <input
                                                     v-model="exportFormat"
                                                     type="radio"
                                                     value="csv"
-                                                    class="h-4 w-4 border-gray-300 text-primary focus:ring-primary"
+                                                    class="h-4 w-4 border-border text-primary focus:ring-primary"
                                                 />
-                                                <span class="text-sm text-gray-700">CSV (.csv)</span>
+                                                <span class="text-sm text-foreground">CSV (.csv)</span>
                                             </label>
-                                            <label class="flex cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-gray-50">
+                                            <label class="flex cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-muted">
                                                 <input
                                                     v-model="exportFormat"
                                                     type="radio"
                                                     value="xls"
-                                                    class="h-4 w-4 border-gray-300 text-primary focus:ring-primary"
+                                                    class="h-4 w-4 border-border text-primary focus:ring-primary"
                                                 />
-                                                <span class="text-sm text-gray-700">Excel (.xlsx)</span>
+                                                <span class="text-sm text-foreground">Excel (.xlsx)</span>
                                             </label>
-                                            <label class="flex cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-gray-50">
+                                            <label class="flex cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-muted">
                                                 <input
                                                     v-model="exportFormat"
                                                     type="radio"
                                                     value="json"
-                                                    class="h-4 w-4 border-gray-300 text-primary focus:ring-primary"
+                                                    class="h-4 w-4 border-border text-primary focus:ring-primary"
                                                 />
-                                                <span class="text-sm text-gray-700">JSON (.json)</span>
+                                                <span class="text-sm text-foreground">JSON (.json)</span>
                                             </label>
                                         </div>
                                     </div>
 
                                     <!-- Content Type Selection -->
                                     <div class="mb-6">
-                                        <Label class="mb-3 block text-sm font-medium text-gray-700">Content Type</Label>
+                                        <Label class="mb-3 block text-sm font-medium text-foreground">Content Type</Label>
                                         <div class="space-y-2">
-                                            <label class="flex cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-gray-50">
+                                            <label class="flex cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-muted">
                                                 <input
                                                     v-model="exportType"
                                                     type="radio"
                                                     value="decrypted"
-                                                    class="h-4 w-4 border-gray-300 text-primary focus:ring-primary"
+                                                    class="h-4 w-4 border-border text-primary focus:ring-primary"
                                                 />
-                                                <span class="text-sm text-gray-700">Decrypted answers (human readable)</span>
+                                                <span class="text-sm text-foreground">Decrypted answers (human readable)</span>
                                             </label>
-                                            <label class="flex cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-gray-50">
+                                            <label class="flex cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-muted">
                                                 <input
                                                     v-model="exportType"
                                                     type="radio"
                                                     value="encrypted"
-                                                    class="h-4 w-4 border-gray-300 text-primary focus:ring-primary"
+                                                    class="h-4 w-4 border-border text-primary focus:ring-primary"
                                                 />
-                                                <span class="text-sm text-gray-700">Encrypted answers (raw data)</span>
+                                                <span class="text-sm text-foreground">Encrypted answers (raw data)</span>
                                             </label>
                                         </div>
                                     </div>
@@ -422,9 +422,9 @@ onMounted(() => {
                 </div>
 
                 <!-- Loading State -->
-                <div v-if="isLoading" class="rounded-xl border border-gray-200 bg-white p-12 text-center shadow-sm">
-                    <div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
-                        <svg class="h-8 w-8 animate-spin text-blue-600" fill="none" viewBox="0 0 24 24">
+                <div v-if="isLoading" class="rounded-xl border border-border bg-card p-12 text-center shadow-sm">
+                    <div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                        <svg class="h-8 w-8 animate-spin text-primary" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path
                                 class="opacity-75"
@@ -433,14 +433,14 @@ onMounted(() => {
                             ></path>
                         </svg>
                     </div>
-                    <p class="text-lg text-gray-600">Loading and decrypting answers...</p>
+                    <p class="text-lg text-muted-foreground">Loading and decrypting answers...</p>
                 </div>
 
                 <!-- Error Messages -->
-                <div v-if="errorMessages.length > 0" class="mb-6 rounded-xl border border-red-200 bg-red-50 p-6">
+                <div v-if="errorMessages.length > 0" class="mb-6 rounded-xl border border-destructive/40 bg-destructive/10 p-6">
                     <div class="flex items-start gap-3">
                         <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                            <svg class="h-5 w-5 text-destructive" viewBox="0 0 20 20" fill="currentColor">
                                 <path
                                     fill-rule="evenodd"
                                     d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
@@ -449,8 +449,8 @@ onMounted(() => {
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-sm font-medium text-red-800">Error occurred</h3>
-                            <div class="mt-2 text-sm text-red-700">
+                            <h3 class="text-sm font-medium text-destructive">Error occurred</h3>
+                            <div class="mt-2 text-sm text-destructive">
                                 <ul class="list-inside list-disc space-y-1">
                                     <li v-for="(msg, index) in errorMessages" :key="index">{{ msg }}</li>
                                 </ul>
@@ -462,10 +462,10 @@ onMounted(() => {
                 <!-- No Submissions State -->
                 <div
                     v-if="!isLoading && decryptedSubmissions.length === 0 && errorMessages.length === 0"
-                    class="rounded-xl border border-gray-200 bg-white p-12 text-center shadow-sm"
+                    class="rounded-xl border border-border bg-card p-12 text-center shadow-sm"
                 >
-                    <div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-                        <svg class="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                        <svg class="h-8 w-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
@@ -474,8 +474,8 @@ onMounted(() => {
                             />
                         </svg>
                     </div>
-                    <h3 class="mb-2 text-lg font-semibold text-gray-900">No submissions yet</h3>
-                    <p class="text-gray-600">No submissions found for this form yet.</p>
+                    <h3 class="mb-2 text-lg font-semibold text-foreground">No submissions yet</h3>
+                    <p class="text-muted-foreground">No submissions found for this form yet.</p>
                 </div>
 
                 <!-- Submissions List -->
@@ -483,13 +483,13 @@ onMounted(() => {
                     <div
                         v-for="submission in decryptedSubmissions"
                         :key="submission.id"
-                        class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
+                        class="overflow-hidden rounded-xl border border-border bg-card shadow-sm"
                     >
-                        <div class="border-b border-gray-100 p-6">
+                        <div class="border-b border-border/60 p-6">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <h2 class="text-lg font-semibold text-gray-900">Submission ID: {{ submission.id }}</h2>
-                                    <p class="mt-1 text-sm text-gray-500">Submitted at: {{ submission.submittedAt }}</p>
+                                    <h2 class="text-lg font-semibold text-foreground">Submission ID: {{ submission.id }}</h2>
+                                    <p class="mt-1 text-sm text-muted-foreground">Submitted at: {{ submission.submittedAt }}</p>
                                 </div>
                             </div>
                         </div>
@@ -498,13 +498,13 @@ onMounted(() => {
                                 <div
                                     v-for="(decryptedAnswer, index) in submission.answers"
                                     :key="index"
-                                    class="border-b border-gray-100 pb-6 last:border-b-0 last:pb-0"
+                                    class="border-b border-border/60 pb-6 last:border-b-0 last:pb-0"
                                 >
-                                    <Label class="mb-2 block text-sm font-medium text-gray-900">
+                                    <Label class="mb-2 block text-sm font-medium text-foreground">
                                         {{ decryptedAnswer.questionTitle }}
                                     </Label>
-                                    <div class="rounded-lg bg-gray-50 p-4">
-                                        <p class="whitespace-pre-wrap text-gray-700">{{ decryptedAnswer.answer }}</p>
+                                    <div class="rounded-lg bg-muted/40 p-4">
+                                        <p class="whitespace-pre-wrap text-foreground">{{ decryptedAnswer.answer }}</p>
                                     </div>
                                 </div>
                             </div>

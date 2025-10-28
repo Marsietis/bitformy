@@ -85,18 +85,18 @@ const submit = () => {
     <Head title="New Form" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="min-h-screen bg-gray-50/50">
+        <div class="min-h-screen bg-muted/40 dark:bg-background">
             <div class="mx-auto max-w-4xl p-6">
                 <!-- Header -->
                 <div class="mb-8">
-                    <h1 class="text-3xl font-bold text-gray-900">Create New Form</h1>
-                    <p class="mt-2 text-gray-600">Design your form with custom questions and share it with others.</p>
+                    <h1 class="text-3xl font-bold text-foreground">Create New Form</h1>
+                    <p class="mt-2 text-muted-foreground">Design your form with custom questions and share it with others.</p>
                 </div>
 
                 <form @submit.prevent="submit" class="space-y-6">
                     <!-- Form Details Card -->
-                    <div class="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
-                        <h2 class="mb-6 text-xl font-semibold text-gray-900">Form Details</h2>
+                    <div class="rounded-xl border border-border bg-card p-8 shadow-sm">
+                        <h2 class="mb-6 text-xl font-semibold text-foreground">Form Details</h2>
 
                         <div class="space-y-6">
                             <div class="grid gap-2">
@@ -118,15 +118,15 @@ const submit = () => {
                     </div>
 
                     <!-- Questions Card -->
-                    <div class="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+                    <div class="rounded-xl border border-border bg-card p-8 shadow-sm">
                         <div class="mb-6">
-                            <h2 class="text-xl font-semibold text-gray-900">Questions</h2>
-                            <p class="mt-1 text-sm text-gray-600">Add and organize your form questions. Drag to reorder.</p>
+                            <h2 class="text-xl font-semibold text-foreground">Questions</h2>
+                            <p class="mt-1 text-sm text-muted-foreground">Add and organize your form questions. Drag to reorder.</p>
                         </div>
 
-                        <div v-if="form.questions.length === 0" class="rounded-xl border-2 border-dashed border-gray-200 py-12 text-center">
-                            <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-                                <svg class="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div v-if="form.questions.length === 0" class="rounded-xl border-2 border-dashed border-border/60 py-12 text-center">
+                            <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                                <svg class="h-8 w-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path
                                         stroke-linecap="round"
                                         stroke-linejoin="round"
@@ -135,18 +135,18 @@ const submit = () => {
                                     />
                                 </svg>
                             </div>
-                            <p class="mb-4 font-medium text-gray-600">No questions yet</p>
+                            <p class="mb-4 font-medium text-muted-foreground">No questions yet</p>
                             <Button type="button" @click="addQuestion" variant="outline"> Add your first question </Button>
                         </div>
 
                         <div v-else class="space-y-6">
                             <draggable v-model="form.questions" item-key="id" handle=".drag-handle" class="space-y-4" :animation="200">
                                 <template #item="{ element: question, index: qIndex }">
-                                    <div class="rounded-xl border border-gray-200 bg-gray-50/50 p-6 transition-shadow duration-200 hover:shadow-md">
+                                    <div class="rounded-xl border border-border bg-muted/40 p-6 transition-shadow duration-200 hover:shadow-md">
                                         <div class="mb-6 flex items-start justify-between">
                                             <div class="flex items-center gap-3">
                                                 <!-- Drag handle -->
-                                                <div class="drag-handle cursor-move p-1 text-gray-400 transition-colors hover:text-gray-600">
+                                                <div class="drag-handle cursor-move p-1 text-muted-foreground transition-colors hover:text-foreground">
                                                     <svg
                                                         xmlns="http://www.w3.org/2000/svg"
                                                         class="h-5 w-5"
@@ -158,10 +158,10 @@ const submit = () => {
                                                     </svg>
                                                 </div>
                                                 <div class="flex items-center gap-2">
-                                                    <span class="text-sm font-medium text-gray-900"> Question {{ qIndex + 1 }} </span>
+                                                    <span class="text-sm font-medium text-foreground"> Question {{ qIndex + 1 }} </span>
                                                     <span
                                                         v-if="question.required"
-                                                        class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-600"
+                                                        class="inline-flex items-center rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive dark:bg-destructive/20"
                                                     >
                                                         Required
                                                     </span>
@@ -212,7 +212,7 @@ const submit = () => {
                                                     size="sm"
                                                     type="button"
                                                     @click="removeQuestion(qIndex)"
-                                                    class="text-red-600 hover:bg-red-50 hover:text-red-700"
+                                                    class="text-destructive hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/20"
                                                 >
                                                     <svg
                                                         xmlns="http://www.w3.org/2000/svg"
@@ -265,9 +265,9 @@ const submit = () => {
                                                             :id="`question-${question.id}-required`"
                                                             v-model="question.required"
                                                             type="checkbox"
-                                                            class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                                            class="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                                                         />
-                                                        <Label :for="`question-${question.id}-required`" class="text-sm font-medium text-gray-700">
+                                                        <Label :for="`question-${question.id}-required`" class="text-sm font-medium text-foreground">
                                                             Required question
                                                         </Label>
                                                     </div>
@@ -275,9 +275,9 @@ const submit = () => {
                                             </div>
 
                                             <!-- Options Section -->
-                                            <div v-if="question.type === 'choice'" class="rounded-lg border border-gray-200 bg-white p-6">
+                                            <div v-if="question.type === 'choice'" class="rounded-lg border border-border bg-card p-6">
                                                 <div class="mb-4 flex items-center justify-between">
-                                                    <h4 class="text-sm font-medium text-gray-900">Answer Options</h4>
+                                                    <h4 class="text-sm font-medium text-foreground">Answer Options</h4>
                                                     <div class="flex items-center gap-4">
                                                         <!-- Multiple Choice Toggle -->
                                                         <div class="flex items-center gap-2">
@@ -285,9 +285,9 @@ const submit = () => {
                                                                 :id="`question-${question.id}-multiple`"
                                                                 v-model="question.multipleChoice"
                                                                 type="checkbox"
-                                                                class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                                                class="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                                                             />
-                                                            <Label :for="`question-${question.id}-multiple`" class="text-sm text-gray-600">
+                                                            <Label :for="`question-${question.id}-multiple`" class="text-sm text-muted-foreground">
                                                                 Allow multiple selections
                                                             </Label>
                                                         </div>
@@ -313,9 +313,9 @@ const submit = () => {
 
                                                 <div
                                                     v-if="question.options.length === 0"
-                                                    class="rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 py-8 text-center"
+                                                    class="rounded-lg border-2 border-dashed border-border/60 bg-muted/40 py-8 text-center"
                                                 >
-                                                    <p class="text-sm text-gray-500">No options added yet</p>
+                                                    <p class="text-sm text-muted-foreground">No options added yet</p>
                                                 </div>
 
                                                 <div class="space-y-3">
@@ -325,7 +325,7 @@ const submit = () => {
                                                         class="flex items-center gap-3"
                                                     >
                                                         <div class="relative flex-1">
-                                                            <span class="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400">
+                                                            <span class="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground/70">
                                                                 <svg
                                                                     v-if="!question.multipleChoice"
                                                                     xmlns="http://www.w3.org/2000/svg"
@@ -360,7 +360,7 @@ const submit = () => {
                                                             size="sm"
                                                             type="button"
                                                             @click="removeOption(question, oIndex)"
-                                                            class="text-gray-400 hover:bg-red-50 hover:text-red-600"
+                                                            class="text-muted-foreground hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/20"
                                                         >
                                                             <svg
                                                                 xmlns="http://www.w3.org/2000/svg"

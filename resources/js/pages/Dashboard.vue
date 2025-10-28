@@ -21,17 +21,17 @@ const breadcrumbs = [
     <Head title="Dashboard" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="min-h-screen bg-gray-50/50">
+        <div class="min-h-screen bg-muted/40 dark:bg-background">
             <div class="mx-auto max-w-6xl p-6">
                 <!-- Page Header -->
                 <div class="mb-8">
-                    <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
-                    <p class="mt-2 text-gray-600">Manage your forms and view analytics</p>
+                    <h1 class="text-3xl font-bold text-foreground">Dashboard</h1>
+                    <p class="mt-2 text-muted-foreground">Manage your forms and view analytics</p>
                 </div>
                 <!-- Forms Section -->
-                <div class="rounded-xl border border-gray-200 bg-white shadow-sm p-8">
+                <div class="rounded-xl border border-border bg-card p-8 shadow-sm">
                     <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-xl font-semibold text-gray-900">Your Forms</h2>
+                        <h2 class="text-xl font-semibold text-foreground">Your Forms</h2>
                         <Button asChild>
                             <Link href="/form/new" class="gap-2">
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -46,18 +46,18 @@ const breadcrumbs = [
                         <div
                             v-for="form in forms"
                             :key="form.id"
-                            class="group rounded-lg border border-gray-200 p-6 hover:border-gray-300 hover:shadow-sm transition-all duration-200"
+                            class="group rounded-lg border border-border p-6 transition-all duration-200 hover:border-primary/50 hover:shadow-sm"
                         >
                             <Link :href="`/form/${form.id}`" class="block">
                                 <div class="flex items-center justify-between">
                                     <div class="flex-1">
-                                        <h3 class="text-lg font-semibold text-gray-900 group-hover:text-primary transition-colors">
+                                        <h3 class="text-lg font-semibold text-foreground transition-colors group-hover:text-primary">
                                             {{ form.title }}
                                         </h3>
-                                        <p v-if="form.description" class="text-gray-600 mt-2 line-clamp-2">
+                                        <p v-if="form.description" class="mt-2 line-clamp-2 text-muted-foreground">
                                             {{ form.description }}
                                         </p>
-                                        <div class="flex items-center gap-6 mt-4 text-sm text-gray-500">
+                                        <div class="mt-4 flex items-center gap-6 text-sm text-muted-foreground">
                                             <span v-if="form.created_at" class="flex items-center gap-1">
                                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -72,7 +72,7 @@ const breadcrumbs = [
                                             </span>
                                         </div>
                                     </div>
-                                    <div class="flex items-center ml-6 text-gray-400 group-hover:text-primary transition-colors">
+                                    <div class="ml-6 flex items-center text-muted-foreground transition-colors group-hover:text-primary">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                         </svg>
@@ -84,13 +84,13 @@ const breadcrumbs = [
 
                     <!-- Empty State -->
                     <div v-else class="text-center py-12">
-                        <div class="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-6">
-                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                            <svg class="h-8 w-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
                         </div>
-                        <h3 class="text-lg font-semibold text-gray-900 mb-2">No forms created yet</h3>
-                        <p class="text-gray-600 mb-8">Create your first form to start collecting responses</p>
+                        <h3 class="mb-2 text-lg font-semibold text-foreground">No forms created yet</h3>
+                        <p class="mb-8 text-muted-foreground">Create your first form to start collecting responses</p>
                         <Button asChild size="lg">
                             <Link href="/form/new" class="gap-2">
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

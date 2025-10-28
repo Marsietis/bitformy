@@ -248,14 +248,14 @@ function viewAnswers() {
     <Head :title="form.title" />
 
     <component :is="layout" :breadcrumbs="breadcrumbs">
-        <div class="min-h-screen bg-gray-50/50">
+        <div class="min-h-screen bg-muted/40 dark:bg-background">
             <div class="mx-auto max-w-4xl p-6">
                 <!-- Form Header Card -->
-                <div class="mb-6 rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+                <div class="mb-6 rounded-xl border border-border bg-card p-8 shadow-sm">
                     <div class="flex items-start justify-between">
                         <div class="flex-1">
-                            <h1 class="text-3xl font-bold text-gray-900">{{ form.title }}</h1>
-                            <p v-if="form.description" class="mt-3 text-lg text-gray-600">{{ form.description }}</p>
+                            <h1 class="text-3xl font-bold text-foreground">{{ form.title }}</h1>
+                            <p v-if="form.description" class="mt-3 text-lg text-muted-foreground">{{ form.description }}</p>
                         </div>
 
                         <!-- Creator Actions -->
@@ -269,13 +269,13 @@ function viewAnswers() {
                                 <Button @click="showSharePopover = !showSharePopover" size="sm"> Share</Button>
                                 <div
                                     v-if="showSharePopover"
-                                    class="ring-opacity-5 absolute right-0 z-10 mt-2 w-80 rounded-lg border border-gray-200 bg-white shadow-lg ring-1 ring-black"
+                                    class="ring-opacity-5 absolute right-0 z-10 mt-2 w-80 rounded-lg border border-border bg-card shadow-lg ring-1 ring-black/10"
                                 >
                                     <div class="p-6">
-                                        <h3 class="mb-2 text-lg font-semibold text-gray-900">Share form</h3>
-                                        <p class="mb-4 text-sm text-gray-600">Anyone with the link can view and submit this form.</p>
+                                        <h3 class="mb-2 text-lg font-semibold text-foreground">Share form</h3>
+                                        <p class="mb-4 text-sm text-muted-foreground">Anyone with the link can view and submit this form.</p>
                                         <div class="flex gap-2">
-                                            <Input type="text" :model-value="formLink" readonly class="flex-1 bg-gray-50" />
+                                            <Input type="text" :model-value="formLink" readonly class="flex-1 bg-muted" />
                                             <Button @click="copyLink" variant="outline" size="sm" class="shrink-0">
                                                 {{ copyStatus }}
                                             </Button>
@@ -287,7 +287,7 @@ function viewAnswers() {
                     </div>
 
                     <!-- Form Meta Info -->
-                    <div class="mt-6 flex items-center gap-6 text-sm text-gray-500">
+                    <div class="mt-6 flex items-center gap-6 text-sm text-muted-foreground">
                         <span v-if="form.created_at"> Created: {{ new Date(form.created_at).toLocaleDateString() }} </span>
                         <span v-if="form.updated_at"> Updated: {{ new Date(form.updated_at).toLocaleDateString() }} </span>
                     </div>
@@ -295,12 +295,12 @@ function viewAnswers() {
 
                 <!-- Form Content -->
                 <form @submit.prevent="submitForm" v-if="!submitted">
-                    <div class="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+                    <div class="rounded-xl border border-border bg-card p-8 shadow-sm">
                         <div v-if="questions && questions.length > 0" class="space-y-8">
                             <div
                                 v-for="(question, index) in questions"
                                 :key="question.id"
-                                class="border-b border-gray-100 pb-8 last:border-b-0 last:pb-0"
+                                class="border-b border-border/60 pb-8 last:border-b-0 last:pb-0"
                             >
                                 <div class="mb-6">
                                     <div class="flex items-start gap-4">
@@ -310,7 +310,7 @@ function viewAnswers() {
                                             {{ index + 1 }}
                                         </div>
                                         <div class="flex-1">
-                                            <Label class="mb-4 block text-lg font-semibold text-gray-900">
+                                            <Label class="mb-4 block text-lg font-semibold text-foreground">
                                                 {{ question.title }}
                                                 <span v-if="question.required" class="ml-1 text-red-500">*</span>
                                             </Label>
@@ -340,20 +340,17 @@ function viewAnswers() {
                                                             :name="`question_${question.id}`"
                                                             :value="option"
                                                             v-model="answers[question.id]"
-                                                            class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                                        class="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                                                             :required="
                                                                 question.required && !getOptions(question.options).multiple && !answers[question.id]
                                                             "
                                                         />
-                                                        <Label
-                                                            :for="`q${index}_option${optionIndex}`"
-                                                            class="cursor-pointer font-normal text-gray-700"
-                                                        >
+                                                        <Label :for="`q${index}_option${optionIndex}`" class="cursor-pointer font-normal text-foreground">
                                                             {{ option }}
                                                         </Label>
                                                     </div>
                                                 </div>
-                                                <div v-else class="text-gray-500 italic">No options available</div>
+                                                <div v-else class="italic text-muted-foreground/80">No options available</div>
                                             </div>
                                         </div>
                                     </div>
@@ -362,11 +359,11 @@ function viewAnswers() {
                         </div>
 
                         <div v-else class="py-12 text-center">
-                            <p class="text-lg text-gray-600">This form has no questions.</p>
+                            <p class="text-lg text-muted-foreground">This form has no questions.</p>
                         </div>
 
                         <div v-if="questions && questions.length > 0" class="mt-8 flex items-center justify-between">
-                            <span v-if="submissionStatus" class="text-sm text-gray-600">{{ submissionStatus }}</span>
+                            <span v-if="submissionStatus" class="text-sm text-muted-foreground">{{ submissionStatus }}</span>
                             <div class="ml-auto">
                                 <Button type="submit" size="lg"> Submit</Button>
                             </div>
@@ -375,14 +372,14 @@ function viewAnswers() {
                 </form>
 
                 <!-- Success State -->
-                <div v-else class="rounded-xl border border-gray-200 bg-white p-12 text-center shadow-sm">
-                    <div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-                        <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div v-else class="rounded-xl border border-border bg-card p-12 text-center shadow-sm">
+                    <div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/15 dark:bg-emerald-500/25">
+                        <svg class="h-8 w-8 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                         </svg>
                     </div>
-                    <h2 class="mb-3 text-2xl font-bold text-gray-900">Form submitted successfully</h2>
-                    <p class="mb-8 text-gray-600">Your response has been recorded and encrypted.</p>
+                    <h2 class="mb-3 text-2xl font-bold text-foreground">Form submitted successfully</h2>
+                    <p class="mb-8 text-muted-foreground">Your response has been recorded and encrypted.</p>
                     <Button @click="submitAnotherResponse" variant="outline" size="lg"> Submit another response</Button>
                 </div>
             </div>
@@ -391,12 +388,12 @@ function viewAnswers() {
         <!-- Delete Confirmation Modal -->
         <div
             v-if="showDeleteConfirm"
-            class="fixed inset-0 z-50 flex h-full w-full items-center justify-center overflow-y-auto bg-gray-600/50 p-4 backdrop-blur-sm"
+            class="fixed inset-0 z-50 flex h-full w-full items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm"
         >
-            <div class="relative mx-auto w-full max-w-md rounded-xl border border-gray-200 bg-white shadow-xl">
+            <div class="relative mx-auto w-full max-w-md rounded-xl border border-border bg-card shadow-xl">
                 <div class="p-6">
-                    <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-                        <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 dark:bg-destructive/20">
+                        <svg class="h-6 w-6 text-destructive" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
@@ -405,8 +402,8 @@ function viewAnswers() {
                             />
                         </svg>
                     </div>
-                    <h3 class="mb-2 text-center text-lg font-semibold text-gray-900">Delete Form</h3>
-                    <p class="mb-6 text-center text-sm text-gray-600">
+                    <h3 class="mb-2 text-center text-lg font-semibold text-foreground">Delete Form</h3>
+                    <p class="mb-6 text-center text-sm text-muted-foreground">
                         Are you sure you want to delete "{{ form.title }}"? This action cannot be undone.
                     </p>
                     <div class="flex gap-3">
