@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreFormRequest;
+use App\Http\Requests\UpdateFormRequest;
 use App\Models\Answer;
 use App\Models\Form;
 use App\Models\Question;
@@ -22,19 +24,9 @@ class FormController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreFormRequest $request)
     {
-        $validatedData = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string|max:1000',
-            'questions' => 'required|array|min:1',
-            'questions.*.title' => 'required|string|max:255',
-            'questions.*.type' => 'required|string|in:text,choice',
-            'questions.*.required' => 'boolean',
-            'questions.*.options' => 'array|required_if:questions.*.type,choice',
-            'questions.*.options.*.text' => 'string|max:255',
-            'questions.*.multipleChoice' => 'boolean',
-        ]);
+        $validatedData = $request->validated();
 
         $currentUserId = auth()->id();
 
@@ -148,27 +140,13 @@ class FormController extends Controller
         ]);
     }
 
-    public function update(Request $request, Form $form)
+    public function update(UpdateFormRequest $request, Form $form)
     {
         if (auth()->id() !== $form->user_id) {
             abort(403);
         }
 
-        $validatedData = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string|max:1000',
-            'questions' => 'required|array|min:1',
-            'questions.*.id' => 'nullable|integer',
-            'questions.*.form_id' => 'nullable|string',
-            'questions.*.title' => 'required|string|max:255',
-            'questions.*.type' => 'required|string|in:text,choice',
-            'questions.*.required' => 'boolean',
-            'questions.*.options' => 'nullable|required_if:questions.*.type,choice',
-            'questions.*.multipleChoice' => 'nullable|boolean',
-            'questions.*.order' => 'nullable|integer',
-            'questions.*.created_at' => 'nullable|string',
-            'questions.*.updated_at' => 'nullable|string',
-        ]);
+        $validatedData = $request->validated();
 
         $form->title = $validatedData['title'];
         $form->description = $validatedData['description'];
