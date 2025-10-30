@@ -173,18 +173,18 @@ const cancelRegenerateLink = () => {
     <Head :title="`Edit Form - ${form.title}`" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="min-h-screen bg-gray-50/50">
+        <div class="min-h-screen bg-muted/40 dark:bg-background">
             <div class="mx-auto max-w-4xl p-6">
                 <!-- Header -->
                 <div class="mb-8">
-                    <h1 class="text-3xl font-bold text-gray-900">Edit Form</h1>
-                    <p class="mt-2 text-gray-600">Update your form details and questions</p>
+                    <h1 class="text-3xl font-bold text-foreground">Edit Form</h1>
+                    <p class="mt-2 text-muted-foreground">Update your form details and questions</p>
                 </div>
 
                 <form @submit.prevent="submit" class="space-y-6">
                     <!-- Form Details Card -->
-                    <div class="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
-                        <h2 class="mb-6 text-xl font-semibold text-gray-900">Form Details</h2>
+                    <div class="rounded-xl border border-border bg-card p-8 shadow-sm">
+                        <h2 class="mb-6 text-xl font-semibold text-foreground">Form Details</h2>
 
                         <div class="space-y-6">
                             <div class="grid gap-2">
@@ -220,7 +220,7 @@ const cancelRegenerateLink = () => {
                                             type="text"
                                             :model-value="formLink"
                                             readonly
-                                            class="rounded-r-none border-0 bg-gray-50 focus-visible:ring-0 focus-visible:ring-offset-0"
+                                            class="rounded-r-none border-0 bg-background focus-visible:ring-0 focus-visible:ring-offset-0"
                                             placeholder="Form link will appear here"
                                         />
                                         <Button type="button" @click="copyLink" variant="outline" class="rounded-l-none border-l-0">
@@ -239,7 +239,7 @@ const cancelRegenerateLink = () => {
                                         Generate New Link
                                     </Button>
                                 </div>
-                                <p class="text-sm text-gray-500">
+                                <p class="text-sm text-muted-foreground">
                                     Share this link to allow others to access and submit your form. Generating a new link will invalidate the current
                                     one.
                                 </p>
@@ -248,15 +248,15 @@ const cancelRegenerateLink = () => {
                     </div>
 
                     <!-- Questions Card -->
-                    <div class="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+                    <div class="rounded-xl border border-border bg-card p-8 shadow-sm">
                         <div class="mb-6">
-                            <h2 class="text-xl font-semibold text-gray-900">Questions</h2>
-                            <p class="mt-1 text-sm text-gray-600">Drag to reorder, edit, or add new questions</p>
+                            <h2 class="text-xl font-semibold text-foreground">Questions</h2>
+                            <p class="mt-1 text-sm text-muted-foreground">Drag to reorder, edit, or add new questions</p>
                         </div>
 
-                        <div v-if="form.questions.length === 0" class="rounded-xl border-2 border-dashed border-gray-200 py-12 text-center">
-                            <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-                                <svg class="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div v-if="form.questions.length === 0" class="rounded-xl border-2 border-dashed border-border/60 py-12 text-center">
+                            <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                                <svg class="h-8 w-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path
                                         stroke-linecap="round"
                                         stroke-linejoin="round"
@@ -265,18 +265,18 @@ const cancelRegenerateLink = () => {
                                     />
                                 </svg>
                             </div>
-                            <p class="mb-4 font-medium text-gray-600">No questions yet</p>
+                            <p class="mb-4 font-medium text-muted-foreground">No questions yet</p>
                             <Button type="button" @click="addQuestion" variant="outline"> Add your first question </Button>
                         </div>
 
                         <div v-else class="space-y-6">
                             <draggable v-model="form.questions" item-key="id" handle=".drag-handle" class="space-y-4" :animation="200">
                                 <template #item="{ element: question, index: qIndex }">
-                                    <div class="rounded-xl border border-gray-200 bg-gray-50/50 p-6 transition-shadow duration-200 hover:shadow-md">
+                                    <div class="rounded-xl border border-border bg-muted/40 p-6 transition-shadow duration-200 hover:shadow-md">
                                         <div class="mb-6 flex items-start justify-between">
                                             <div class="flex items-center gap-3">
                                                 <!-- Drag handle -->
-                                                <div class="drag-handle cursor-move p-1 text-gray-400 transition-colors hover:text-gray-600">
+                                                <div class="drag-handle cursor-move p-1 text-muted-foreground transition-colors hover:text-foreground">
                                                     <svg
                                                         xmlns="http://www.w3.org/2000/svg"
                                                         class="h-5 w-5"
@@ -288,10 +288,10 @@ const cancelRegenerateLink = () => {
                                                     </svg>
                                                 </div>
                                                 <div class="flex items-center gap-2">
-                                                    <span class="text-sm font-medium text-gray-900"> Question {{ qIndex + 1 }} </span>
+                                                    <span class="text-sm font-medium text-foreground"> Question {{ qIndex + 1 }} </span>
                                                     <span
                                                         v-if="question.required"
-                                                        class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-600"
+                                                        class="inline-flex items-center rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive dark:bg-destructive/20"
                                                     >
                                                         Required
                                                     </span>
@@ -395,9 +395,9 @@ const cancelRegenerateLink = () => {
                                                             :id="`question-${question.id}-required`"
                                                             v-model="question.required"
                                                             type="checkbox"
-                                                            class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                                            class="h-4 w-4 rounded border-input text-primary focus:ring-primary"
                                                         />
-                                                        <Label :for="`question-${question.id}-required`" class="text-sm font-medium text-gray-700">
+                                                        <Label :for="`question-${question.id}-required`" class="text-sm font-medium text-foreground">
                                                             Required question
                                                         </Label>
                                                     </div>
@@ -405,9 +405,9 @@ const cancelRegenerateLink = () => {
                                             </div>
 
                                             <!-- Options Section -->
-                                            <div v-if="question.type === 'choice'" class="rounded-lg border border-gray-200 bg-white p-6">
+                                            <div v-if="question.type === 'choice'" class="rounded-lg border border-border bg-card p-6">
                                                 <div class="mb-4 flex items-center justify-between">
-                                                    <h4 class="text-sm font-medium text-gray-900">Answer Options</h4>
+                                                    <h4 class="text-sm font-medium text-foreground">Answer Options</h4>
                                                     <div class="flex items-center gap-4">
                                                         <!-- Multiple Choice Toggle -->
                                                         <div class="flex items-center gap-2">
@@ -415,9 +415,9 @@ const cancelRegenerateLink = () => {
                                                                 :id="`question-${question.id}-multiple`"
                                                                 v-model="question.multipleChoice"
                                                                 type="checkbox"
-                                                                class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                                                class="h-4 w-4 rounded border-input text-primary focus:ring-primary"
                                                             />
-                                                            <Label :for="`question-${question.id}-multiple`" class="text-sm text-gray-600">
+                                                            <Label :for="`question-${question.id}-multiple`" class="text-sm text-muted-foreground">
                                                                 Allow multiple selections
                                                             </Label>
                                                         </div>
@@ -443,9 +443,9 @@ const cancelRegenerateLink = () => {
 
                                                 <div
                                                     v-if="!question.options || question.options.length === 0"
-                                                    class="rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 py-8 text-center"
+                                                    class="rounded-lg border-2 border-dashed border-border/60 bg-muted py-8 text-center"
                                                 >
-                                                    <p class="text-sm text-gray-500">No options added yet</p>
+                                                    <p class="text-sm text-muted-foreground">No options added yet</p>
                                                 </div>
 
                                                 <div class="space-y-3">
@@ -455,7 +455,7 @@ const cancelRegenerateLink = () => {
                                                         class="flex items-center gap-3"
                                                     >
                                                         <div class="relative flex-1">
-                                                            <span class="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400">
+                                                            <span class="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground">
                                                                 <svg
                                                                     v-if="!question.multipleChoice"
                                                                     xmlns="http://www.w3.org/2000/svg"
@@ -490,7 +490,7 @@ const cancelRegenerateLink = () => {
                                                             size="sm"
                                                             type="button"
                                                             @click="removeOption(question, oIndex)"
-                                                            class="text-gray-400 hover:bg-red-50 hover:text-red-600"
+                                                            class="text-muted-foreground hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/20"
                                                         >
                                                             <svg
                                                                 xmlns="http://www.w3.org/2000/svg"
@@ -564,12 +564,12 @@ const cancelRegenerateLink = () => {
         <!-- Regenerate Link Confirmation Modal -->
         <div v-if="showRegenerateConfirm" class="fixed inset-0 z-50 overflow-y-auto">
             <div class="flex min-h-screen items-center justify-center p-4">
-                <div class="fixed inset-0 bg-gray-500/50 backdrop-blur-sm transition-opacity" @click="cancelRegenerateLink"></div>
-                <div class="relative w-full max-w-lg transform overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl transition-all">
+                <div class="fixed inset-0 bg-background/80 backdrop-blur-sm transition-opacity" @click="cancelRegenerateLink"></div>
+                <div class="relative w-full max-w-lg transform overflow-hidden rounded-xl border border-border bg-card shadow-xl transition-all">
                     <div class="p-6">
                         <div class="flex items-start gap-4">
-                            <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-orange-100">
-                                <svg class="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-500/20">
+                                <svg class="h-6 w-6 text-orange-600 dark:text-orange-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                     <path
                                         stroke-linecap="round"
                                         stroke-linejoin="round"
@@ -578,8 +578,8 @@ const cancelRegenerateLink = () => {
                                 </svg>
                             </div>
                             <div class="flex-1">
-                                <h3 class="mb-2 text-base leading-6 font-semibold text-gray-900">Generate New Form Link</h3>
-                                <p class="text-sm text-gray-500">
+                                <h3 class="mb-2 text-base leading-6 font-semibold text-foreground">Generate New Form Link</h3>
+                                <p class="text-sm text-muted-foreground">
                                     This will generate a new UUID for your form link. The current link will no longer work and anyone using it will
                                     get a "not found" error. Are you sure you want to continue?
                                 </p>
