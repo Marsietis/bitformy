@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Writer;
 use Google2FA;
+use Hash;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -79,7 +81,7 @@ class TwoFactorController extends Controller
         return back()->withErrors(['otp' => 'Invalid verification code.']);
     }
 
-    public function verifyForm(Request $request)
+    public function showVerificationForm(Request $request)
     {
         // Check if user is in the 2FA flow
         if (! $request->session()->has('2fa_user_id')) {
@@ -104,13 +106,12 @@ class TwoFactorController extends Controller
         }
 
         $userId = $request->session()->get('2fa_user_id');
-        $user = \App\Models\User::findOrFail($userId);
+        $user = User::findOrFail($userId);
 
         if (Google2FA::verifyKey($user->google2fa_secret, $request->otp)) {
             // Remove temporary session data
             $request->session()->forget('2fa_user_id');
 
-            // Log the user in
             Auth::login($user);
             $request->session()->regenerate();
 
@@ -130,7 +131,7 @@ class TwoFactorController extends Controller
             'password' => ['required'],
         ]);
 
-        $hashedPassword = \Hash::make($request->password);
+        $hashedPassword = Hash::make($request->password);
 
         if (! $hashedPassword === $request->password) {
             return back()->withErrors(['password' => 'Incorrect password.']);
@@ -148,7 +149,6 @@ class TwoFactorController extends Controller
     {
         $user = $request->user();
 
-        // Only generate recovery keys if 2FA is enabled
         if (! $user->google2fa_secret) {
             return redirect()->back()->withErrors(['2fa' => 'Two-Factor Authentication is not enabled.']);
         }
@@ -186,12 +186,12 @@ class TwoFactorController extends Controller
         }
 
         $userId = $request->session()->get('2fa_user_id');
-        $user = \App\Models\User::findOrFail($userId);
+        $user = User::findOrFail($userId);
 
         $recoveryKeyRecord = $user->recoveryKeys()
             ->get()
             ->first(function ($key) use ($request) {
-                return \Hash::check($request->recovery_key, $key->recovery_key);
+                return Hash::check($request->recovery_key, $key->recovery_key);
             });
 
         if ($recoveryKeyRecord) {
@@ -201,7 +201,6 @@ class TwoFactorController extends Controller
             // Remove temporary session data
             $request->session()->forget('2fa_user_id');
 
-            // Log the user in
             Auth::login($user);
             $request->session()->regenerate();
 
