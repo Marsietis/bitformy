@@ -23,6 +23,7 @@ class QuestionForm
                     ->required(),
                 Textarea::make('options')
                     ->columnSpanFull(),
+                Toggle::make('allow_multiple')->required(),
                 Toggle::make('required')
                     ->required(),
                 TextInput::make('order')

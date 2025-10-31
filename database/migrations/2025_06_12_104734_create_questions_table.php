@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignUuid('form_id')->constrained('forms')->cascadeOnDelete();
             $table->string('title');
             $table->string('type');
-            $table->text('options')->nullable();
+            $table->json('options')->nullable();
             $table->boolean('required')->default(false);
             $table->integer('order')->default(0);
             $table->timestamps();

@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\Questions\Schemas;
 
 use App\Models\Question;
+use BladeUI\Icons\Components\Icon;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
@@ -20,6 +21,8 @@ class QuestionInfolist
                 TextEntry::make('options')
                     ->placeholder('-')
                     ->columnSpanFull(),
+                IconEntry::make('allow_multiple')
+                    ->boolean(),
                 IconEntry::make('required')
                     ->boolean(),
                 TextEntry::make('order')

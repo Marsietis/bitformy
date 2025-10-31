@@ -17,6 +17,7 @@ class Question extends Model
         'title',
         'type',
         'options',
+        'allow_multiple',
         'required',
         'order',
     ];

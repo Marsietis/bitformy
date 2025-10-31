@@ -56,12 +56,8 @@ class FormController extends Controller
                     if (isset($questionData['multipleChoice'])) {
                         $allowMultiple = $questionData['multipleChoice'];
                     }
-
-                    $optionsData = [
-                        'items' => $optionTexts,
-                        'multiple' => $allowMultiple,
-                    ];
-                    $question->options = json_encode($optionsData);
+                    $question->options = json_encode($optionTexts);
+                    $question->allow_multiple = $allowMultiple;
                 }
             } else {
                 $question->options = null;

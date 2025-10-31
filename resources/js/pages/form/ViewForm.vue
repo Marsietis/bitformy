@@ -16,7 +16,12 @@ const props = defineProps<{
 
 const user = computed(() => page.props.auth.user);
 const form = props.form;
-const questions = form.questions;
+const questions = form.questions.map((question) => ({
+    ...question,
+    options: JSON.parse(question.options),
+}));
+
+console.log(questions);
 const armoredPublicKey = form.user.public_key;
 
 const breadcrumbs = computed(function () {
@@ -32,25 +37,13 @@ const breadcrumbs = computed(function () {
     ];
 });
 
-const getOptions = (optionsString: any) => {
-    if (!optionsString) {
-        return {
-            items: [],
-            multiple: false,
-        };
-    }
-    return JSON.parse(optionsString);
-};
-
 // Function to set up initial empty answers for all questions
 const initializeAnswers = () => {
     const initialAnswers = [];
 
     for (const question of questions) {
-        const options = getOptions(question.options);
-
         if (question.type === 'choice') {
-            if (options.multiple) {
+            if (question.allow_multiple) {
                 // Use an empty array for questions that allow multiple answers
                 initialAnswers[question.id] = [];
             } else {
@@ -296,22 +289,20 @@ function cancelDelete() {
 
                                             <!-- Choice question type -->
                                             <div v-else-if="question.type === 'choice'">
-                                                <div v-if="getOptions(question.options).items.length > 0" class="space-y-3">
+                                                <div v-if="question.options.length > 0" class="space-y-3">
                                                     <div
-                                                        v-for="(option, optionIndex) in getOptions(question.options).items"
+                                                        v-for="(option, optionIndex) in question.options"
                                                         :key="optionIndex"
                                                         class="flex items-center gap-3"
                                                     >
                                                         <input
-                                                            :type="getOptions(question.options).multiple ? 'checkbox' : 'radio'"
+                                                            :type="question.allow_multiple ? 'checkbox' : 'radio'"
                                                             :id="`q${index}_option${optionIndex}`"
                                                             :name="`question_${question.id}`"
                                                             :value="option"
                                                             v-model="answers[question.id]"
                                                             class="h-4 w-4 rounded border-border text-primary focus:ring-primary"
-                                                            :required="
-                                                                question.required && !getOptions(question.options).multiple && !answers[question.id]
-                                                            "
+                                                            :required="question.required && !question.allow_multiple && !answers[question.id]"
                                                         />
                                                         <Label
                                                             :for="`q${index}_option${optionIndex}`"

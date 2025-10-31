@@ -25,6 +25,8 @@ class QuestionsTable
                     ->searchable(),
                 TextColumn::make('type')
                     ->searchable(),
+                IconColumn::make('allow_multiple')
+                    ->boolean(),
                 IconColumn::make('required')
                     ->boolean(),
                 TextColumn::make('order')
