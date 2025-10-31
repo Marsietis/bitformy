@@ -95,12 +95,10 @@ const addOption = (question) => {
     }
 
     const newOption = {
-        id: nextOptionId.value,
-        text: 'Option',
+        id: nextOptionId.value++,
+        text: 'Option ' + (question.options.length + 1),
     };
     question.options.push(newOption);
-
-    nextOptionId.value = nextOptionId.value + 1;
 };
 
 const removeOption = (question, index) => {
