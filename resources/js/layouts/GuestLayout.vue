@@ -12,7 +12,6 @@ import { Link } from '@inertiajs/vue3';
                     <div class="grid flex-1 text-left text-sm">
                         <span class="font-bold text-black dark:text-white text-7xl">Bitformy</span>
                     </div>
-                    <hr class="my-4 h-px border-t-0 bg-transparent bg-gradient-to-r from-transparent via-neutral-500 to-transparent opacity-25 dark:via-neutral-400" />
                 </Link>
             </div>
                 <slot />
