@@ -103,7 +103,7 @@ const hasValidAnswer = (answer: any) => {
     return answer !== null && answer !== '' && answer !== undefined;
 };
 
-const isSubmitting = ref(false); // To prevent multiple submissions at the same time
+const isSubmitting = ref(false); // Is used to prevent multiple submissions at the same time
 
 const submitForm = async () => {
     if (isSubmitting.value) return;
