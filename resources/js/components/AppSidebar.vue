@@ -16,7 +16,7 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'New Form',
-        href: '/form/new',
+        href: '/forms/new',
         icon: FilePlus,
     },
 ];
