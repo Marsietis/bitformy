@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Forms\Schemas;
 
+use App\Models\Form;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
 
@@ -25,6 +26,9 @@ class FormInfolist
                 TextEntry::make('updated_at')
                     ->dateTime()
                     ->placeholder('-'),
+                TextEntry::make('deleted_at')
+                    ->dateTime()
+                    ->visible(fn (Form $record): bool => $record->trashed()),
             ]);
     }
 }
