@@ -1,10 +1,10 @@
-<script setup lang="js">
+<script setup lang="ts">
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input/index.js';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { nextTick, ref } from 'vue';
 import draggable from 'vuedraggable';
 
 const breadcrumbs = [
@@ -23,27 +23,59 @@ const form = useForm({
     questions: [],
 });
 
-let nextQuestionId = ref(1);
-let nextOptionId = ref(1);
+const nextQuestionId = ref(1);
+const nextOptionId = ref(1);
 
 const addQuestion = () => {
+    const newQuestionId = nextQuestionId.value++;
     form.questions.push({
-        id: nextQuestionId.value++,
-        title: '',
+        id: newQuestionId,
+        title: 'Question',
         type: 'text',
         required: false,
         multipleChoice: false,
         options: [],
     });
+    focusNextQuestionTitle(newQuestionId);
 };
 
 const removeQuestion = (index) => {
     form.questions.splice(index, 1);
 };
 
+const copyQuestion = (questionIndex) => {
+    const questionToCopy = form.questions[questionIndex];
+    const newQuestionId = nextQuestionId.value++;
+    const copiedQuestion = {
+        id: newQuestionId,
+        title: questionToCopy.title,
+        type: questionToCopy.type,
+        required: questionToCopy.required,
+        multipleChoice: questionToCopy.multipleChoice,
+        options: questionToCopy.options
+            ? questionToCopy.options.map((option) => ({
+                  id: nextOptionId.value++,
+                  text: option.text,
+              }))
+            : [],
+    };
+    form.questions.splice(questionIndex + 1, 0, copiedQuestion);
+    focusNextQuestionTitle(newQuestionId);
+}
+
+const focusNextQuestionTitle = (questionId) => {
+    nextTick(() => {
+        const input = document.getElementById(`question-${questionId}-title`);
+        if (input) {
+            input.focus();
+            input.select();
+        }
+    });
+};
+
 const moveQuestionUp = (index) => {
     if (index > 0) {
-        let currentQuestion = form.questions[index];
+        const currentQuestion = form.questions[index];
         form.questions[index] = form.questions[index - 1];
         form.questions[index - 1] = currentQuestion;
     }
@@ -51,7 +83,7 @@ const moveQuestionUp = (index) => {
 
 const moveQuestionDown = (index) => {
     if (index < form.questions.length - 1) {
-        let currentQuestion = form.questions[index];
+        const currentQuestion = form.questions[index];
         form.questions[index] = form.questions[index + 1];
         form.questions[index + 1] = currentQuestion;
     }
@@ -62,9 +94,9 @@ const addOption = (question) => {
         question.options = [];
     }
 
-    let newOption = {
+    const newOption = {
         id: nextOptionId.value,
-        text: '',
+        text: 'Option',
     };
     question.options.push(newOption);
 
@@ -125,7 +157,7 @@ const submit = () => {
 
                         <div v-if="form.questions.length === 0" class="rounded-xl border-2 border-dashed border-border/60 py-12 text-center">
                             <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-                                <svg class="h-8 w-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="h-8 w-8 text-muted-foreground fill-none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path
                                         stroke-linecap="round"
                                         stroke-linejoin="round"
@@ -145,14 +177,10 @@ const submit = () => {
                                         <div class="mb-6 flex items-start justify-between">
                                             <div class="flex items-center gap-3">
                                                 <!-- Drag handle -->
-                                                <div class="drag-handle cursor-move p-1 text-muted-foreground transition-colors hover:text-foreground">
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        class="h-5 w-5"
-                                                        fill="none"
-                                                        viewBox="0 0 24 24"
-                                                        stroke="currentColor"
-                                                    >
+                                                <div
+                                                    class="drag-handle cursor-grab p-1 text-muted-foreground transition-colors hover:text-foreground active:cursor-grabbing"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
                                                     </svg>
                                                 </div>
@@ -167,6 +195,22 @@ const submit = () => {
                                                 </div>
                                             </div>
                                             <div class="flex items-center gap-2">
+                                                <!-- Copy question button -->
+                                                <Button variant="ghost" size="sm" type="button" @click="copyQuestion(qIndex)" title="Copy question">
+                                                    <svg
+                                                        class="h-4 w-4 fill-primary"
+                                                        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 352.804 352.804" xml:space="preserve">
+                                                        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                                        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                                                        <g id="SVGRepo_iconCarrier">
+                                                            <g>
+                                                                <path
+                                                                    d="M318.54,57.282h-47.652V15c0-8.284-6.716-15-15-15H34.264c-8.284,0-15,6.716-15,15v265.522c0,8.284,6.716,15,15,15h47.651 v42.281c0,8.284,6.716,15,15,15H318.54c8.284,0,15-6.716,15-15V72.282C333.54,63.998,326.824,57.282,318.54,57.282z M49.264,265.522V30h191.623v27.282H96.916c-8.284,0-15,6.716-15,15v193.24H49.264z M303.54,322.804H111.916V87.282H303.54V322.804 z"
+                                                                ></path>
+                                                            </g>
+                                                        </g>
+                                                    </svg>
+                                                </Button>
                                                 <!-- Move Up Button -->
                                                 <Button
                                                     variant="ghost"
@@ -176,13 +220,7 @@ const submit = () => {
                                                     :disabled="qIndex === 0"
                                                     title="Move up"
                                                 >
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        class="h-4 w-4"
-                                                        fill="none"
-                                                        viewBox="0 0 24 24"
-                                                        stroke="currentColor"
-                                                    >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 fill-none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
                                                     </svg>
                                                 </Button>
@@ -195,13 +233,7 @@ const submit = () => {
                                                     :disabled="qIndex === form.questions.length - 1"
                                                     title="Move down"
                                                 >
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        class="h-4 w-4"
-                                                        fill="none"
-                                                        viewBox="0 0 24 24"
-                                                        stroke="currentColor"
-                                                    >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 fill-none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                                     </svg>
                                                 </Button>
@@ -212,14 +244,9 @@ const submit = () => {
                                                     type="button"
                                                     @click="removeQuestion(qIndex)"
                                                     class="text-destructive hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/20"
+                                                    title="Remove question"
                                                 >
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        class="h-4 w-4"
-                                                        fill="none"
-                                                        viewBox="0 0 24 24"
-                                                        stroke="currentColor"
-                                                    >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 fill-none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path
                                                             stroke-linecap="round"
                                                             stroke-linejoin="round"
@@ -240,18 +267,26 @@ const submit = () => {
                                                     :id="`question-${question.id}-title`"
                                                     v-model="question.title"
                                                     type="text"
-                                                    placeholder="Enter your question"
+                                                    placeholder="Enter your question title here"
                                                     required
+                                                    @focus="$event.target.select()"
+                                                />
+                                                <Input
+                                                    class="mt-6 cursor-not-allowed"
+                                                    type="text"
+                                                    placeholder="Enter your answer"
+                                                    disabled
+                                                    readonly
                                                 />
                                             </div>
-
+                                            <hr class="my-6 h-0.5 border-t-0 bg-neutral-100 dark:bg-white/10" />
                                             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                                                 <div class="grid gap-2">
                                                     <Label :for="`question-${question.id}-type`"> Question Type </Label>
                                                     <select
                                                         :id="`question-${question.id}-type`"
                                                         v-model="question.type"
-                                                        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                                        class="flex h-10 w-full cursor-pointer rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                                                     >
                                                         <option value="text">Text Answer</option>
                                                         <option value="choice">Choice</option>
@@ -259,17 +294,23 @@ const submit = () => {
                                                 </div>
 
                                                 <div class="flex items-center pt-6">
-                                                    <div class="flex items-center gap-2">
+                                                    <label class="inline-flex cursor-pointer items-center">
                                                         <input
                                                             :id="`question-${question.id}-required`"
                                                             v-model="question.required"
                                                             type="checkbox"
-                                                            class="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                                                            class="peer sr-only"
                                                         />
-                                                        <Label :for="`question-${question.id}-required`" class="text-sm font-medium text-foreground">
+                                                        <div
+                                                            class="peer relative h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-blue-600 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white rtl:peer-checked:after:-translate-x-full dark:border-gray-600 dark:bg-zinc-700 dark:peer-checked:bg-blue-900"
+                                                        ></div>
+                                                        <Label
+                                                            :for="`question-${question.id}-required`"
+                                                            class="ms-3 text-sm font-medium text-foreground"
+                                                        >
                                                             Required question
                                                         </Label>
-                                                    </div>
+                                                    </label>
                                                 </div>
                                             </div>
 
@@ -280,33 +321,24 @@ const submit = () => {
                                                     <div class="flex items-center gap-4">
                                                         <!-- Multiple Choice Toggle -->
                                                         <div class="flex items-center gap-2">
-                                                            <input
-                                                                :id="`question-${question.id}-multiple`"
-                                                                v-model="question.multipleChoice"
-                                                                type="checkbox"
-                                                                class="h-4 w-4 rounded border-border text-primary focus:ring-primary"
-                                                            />
-                                                            <Label :for="`question-${question.id}-multiple`" class="text-sm text-muted-foreground">
+                                                            <label class="inline-flex cursor-pointer items-center">
+                                                                <input
+                                                                    :id="`question-${question.id}-multiple`"
+                                                                    v-model="question.multipleChoice"
+                                                                    type="checkbox"
+                                                                    class="peer sr-only"
+                                                                />
+                                                                <div
+                                                                    class="peer relative h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-blue-600 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white rtl:peer-checked:after:-translate-x-full dark:border-gray-600 dark:bg-zinc-700 dark:peer-checked:bg-blue-900"
+                                                                ></div>
+                                                            </label>
+                                                            <Label
+                                                                :for="`question-${question.id}-multiple`"
+                                                                class="text-sm font-medium text-foreground"
+                                                            >
                                                                 Allow multiple selections
                                                             </Label>
                                                         </div>
-                                                        <Button type="button" @click="addOption(question)" variant="outline" size="sm">
-                                                            <svg
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                class="mr-1.5 h-3.5 w-3.5"
-                                                                fill="none"
-                                                                viewBox="0 0 24 24"
-                                                                stroke="currentColor"
-                                                            >
-                                                                <path
-                                                                    stroke-linecap="round"
-                                                                    stroke-linejoin="round"
-                                                                    stroke-width="2"
-                                                                    d="M12 4v16m8-8H4"
-                                                                />
-                                                            </svg>
-                                                            Add Option
-                                                        </Button>
                                                     </div>
                                                 </div>
 
@@ -328,8 +360,7 @@ const submit = () => {
                                                                 <svg
                                                                     v-if="!question.multipleChoice"
                                                                     xmlns="http://www.w3.org/2000/svg"
-                                                                    class="h-4 w-4"
-                                                                    fill="none"
+                                                                    class="h-4 w-4 fill-none"
                                                                     viewBox="0 0 24 24"
                                                                     stroke="currentColor"
                                                                 >
@@ -338,8 +369,7 @@ const submit = () => {
                                                                 <svg
                                                                     v-else
                                                                     xmlns="http://www.w3.org/2000/svg"
-                                                                    class="h-4 w-4"
-                                                                    fill="none"
+                                                                    class="h-4 w-4 fill-none"
                                                                     viewBox="0 0 24 24"
                                                                     stroke="currentColor"
                                                                 >
@@ -352,6 +382,7 @@ const submit = () => {
                                                                 class="w-full rounded-md border border-input bg-background py-2 pr-4 pl-10 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                                                                 placeholder="Option text"
                                                                 required
+                                                                @focus="$event.target.select()"
                                                             />
                                                         </div>
                                                         <Button
@@ -360,11 +391,11 @@ const submit = () => {
                                                             type="button"
                                                             @click="removeOption(question, oIndex)"
                                                             class="text-muted-foreground hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/20"
+                                                            title="Remove option"
                                                         >
                                                             <svg
                                                                 xmlns="http://www.w3.org/2000/svg"
-                                                                class="h-4 w-4"
-                                                                fill="none"
+                                                                class="h-4 w-4 fill-none"
                                                                 viewBox="0 0 24 24"
                                                                 stroke="currentColor"
                                                             >
@@ -372,9 +403,27 @@ const submit = () => {
                                                                     stroke-linecap="round"
                                                                     stroke-linejoin="round"
                                                                     stroke-width="2"
-                                                                    d="M6 18L18 6M6 6l12 12"
+                                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                                                                 />
                                                             </svg>
+                                                        </Button>
+                                                    </div>
+                                                    <div class="flex justify-center pt-4">
+                                                        <Button type="button" @click="addOption(question)" variant="outline" size="sm">
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                class="mr-1.5 h-3.5 w-3.5"
+                                                                viewBox="0 0 24 24"
+                                                                stroke="currentColor"
+                                                            >
+                                                                <path
+                                                                    stroke-linecap="round"
+                                                                    stroke-linejoin="round"
+                                                                    stroke-width="2"
+                                                                    d="M12 4v16m8-8H4"
+                                                                />
+                                                            </svg>
+                                                            Add Option
                                                         </Button>
                                                     </div>
                                                 </div>
@@ -387,7 +436,7 @@ const submit = () => {
                             <!-- Add Question Button -->
                             <div class="flex justify-center pt-4">
                                 <Button type="button" @click="addQuestion" variant="outline" class="gap-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                                     </svg>
                                     Add Question
@@ -400,13 +449,7 @@ const submit = () => {
                     <div class="flex justify-end gap-4">
                         <Button type="button" variant="outline" @click="$inertia.visit('/dashboard')"> Cancel </Button>
                         <Button type="submit" :disabled="form.processing" class="gap-2">
-                            <svg
-                                v-if="form.processing"
-                                class="h-4 w-4 animate-spin"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                            >
+                            <svg v-if="form.processing" class="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path
                                     class="opacity-75"
