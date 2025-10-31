@@ -15,12 +15,8 @@ class FormController extends Controller
 {
     public function show($id)
     {
-        $form = Form::with('user:id,public_key')->findOrFail($id);
-        $questions = $form->questions()->orderBy('order')->get();
-
         return Inertia::render('form/ViewForm', [
-            'form' => $form,
-            'questions' => $questions,
+            'form' => Form::with('questions')->findOrFail($id),
         ]);
     }
 
