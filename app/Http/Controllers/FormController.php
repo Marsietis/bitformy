@@ -4,11 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreFormRequest;
 use App\Http\Requests\UpdateFormRequest;
-use App\Models\Answer;
 use App\Models\Form;
 use App\Models\Question;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class FormController extends Controller
@@ -16,7 +13,7 @@ class FormController extends Controller
     public function show($id)
     {
         return Inertia::render('form/ViewForm', [
-            'form' => Form::with('questions')->findOrFail($id),
+            'form' => Form::with(['questions', 'user:id,public_key'])->findOrFail($id),
         ]);
     }
 
@@ -79,7 +76,7 @@ class FormController extends Controller
 
     public function edit(Form $form)
     {
-        if (auth()->id() !== $form->user_id) {
+        if (auth()->user()->cannot('update', $form)) {
             abort(403);
         }
 
@@ -138,7 +135,7 @@ class FormController extends Controller
 
     public function update(UpdateFormRequest $request, Form $form)
     {
-        if (auth()->id() !== $form->user_id) {
+        if ($request->user()->cannot('update', $form)) {
             abort(403);
         }
 
@@ -235,83 +232,10 @@ class FormController extends Controller
         return redirect()->route('dashboard')->with('success', 'Form updated successfully');
     }
 
-    public function submit(Request $request, Form $form)
-    {
-        $requiredQuestions = [];
-        $allFormQuestions = Question::where('form_id', $form->id)->get();
-
-        foreach ($allFormQuestions as $question) {
-            if ($question->required) {
-                $requiredQuestions[] = $question->id;
-            }
-        }
-
-        $submittedAnswers = $request->input('answers', []);
-
-        if (empty($submittedAnswers)) {
-            return redirect()->back()->withErrors(['answers' => 'Please answer at least one question']);
-        }
-
-        // Find all answered question IDs
-        $answeredQuestionIds = [];
-        foreach ($submittedAnswers as $answer) {
-            if (isset($answer['question_id'])) {
-                $answeredQuestionIds[] = $answer['question_id'];
-            }
-        }
-
-        // Find missing required questions
-        $missingRequiredQuestions = [];
-        foreach ($requiredQuestions as $requiredId) {
-            if (! in_array($requiredId, $answeredQuestionIds)) {
-                $missingRequiredQuestions[] = $requiredId;
-            }
-        }
-
-        if (! empty($missingRequiredQuestions)) {
-            return redirect()->back()->withErrors(['answers' => 'Not all required questions have been answered.']);
-        }
-
-        foreach ($submittedAnswers as $answerData) {
-            if (! isset($answerData['question_id'])) {
-                return redirect()->back()->withErrors(['answers' => 'Each answer must have a question ID']);
-            }
-
-            if (empty($answerData['answer'])) {
-                return redirect()->back()->withErrors(['answers' => 'Each answer must have text']);
-            }
-
-            $questionExists = Question::where('id', $answerData['question_id'])->exists();
-            if (! $questionExists) {
-                return redirect()->back()->withErrors(['answers' => 'Invalid question ID provided']);
-            }
-
-            $questionBelongsToForm = Question::where('id', $answerData['question_id'])
-                ->where('form_id', $form->id)
-                ->exists();
-            if (! $questionBelongsToForm) {
-                return redirect()->back()->withErrors(['answers' => 'Question does not belong to this form']);
-            }
-        }
-
-        $submissionId = Str::uuid()->toString();
-
-        foreach ($submittedAnswers as $answerData) {
-            $newAnswer = new Answer;
-            $newAnswer->question_id = $answerData['question_id'];
-            $newAnswer->answer = $answerData['answer'];
-            $newAnswer->form_id = $form->id;
-            $newAnswer->submission_id = $submissionId;
-            $newAnswer->save();
-        }
-
-        return redirect()->back()->with('success', 'Form submitted successfully!');
-    }
-
     public function destroy(Form $form)
     {
-        if (auth()->id() !== $form->user_id) {
-            abort(403, 'Unauthorized action.');
+        if (auth()->user()->cannot('delete', $form)) {
+            abort(403);
         }
 
         $form->delete();
@@ -321,8 +245,8 @@ class FormController extends Controller
 
     public function regenerateLink(Form $form)
     {
-        if (auth()->id() !== $form->user_id) {
-            abort(403, 'Unauthorized action.');
+        if (auth()->user()->cannot('update', $form)) {
+            abort(403);
         }
 
         $oldId = $form->id;
@@ -342,19 +266,7 @@ class FormController extends Controller
 
         Form::where('id', $oldId)->delete();
 
-        return redirect()->route('form.edit', ['form' => $newId])
+        return redirect()->route('forms.edit', ['form' => $newId])
             ->with('success', 'New form link generated successfully');
-    }
-
-    public function answers(Form $form)
-    {
-        if (auth()->id() !== $form->user_id) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $answers = $form->answers()->get();
-        $questions = $form->questions()->orderBy('order')->get();
-
-        return Inertia::render('form/Answers', ['answers' => $answers, 'questions' => $questions, 'form' => $form]);
     }
 }
