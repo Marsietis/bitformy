@@ -11,6 +11,7 @@ class Answer extends Model
 {
     use HasFactory, SoftDeletes;
 
+    public mixed $user_id;
     protected $fillable = [
         'question_id',
         'form_id',
