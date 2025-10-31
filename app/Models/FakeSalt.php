@@ -11,4 +11,3 @@ class FakeSalt extends Model
         'salt',
     ];
 }
-

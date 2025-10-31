@@ -11,14 +11,9 @@ use Inertia\Inertia;
 
 class AnswerController extends Controller
 {
-    public function index()
-    {
+    public function index() {}
 
-    }
-
-    public function create()
-    {
-    }
+    public function create() {}
 
     public function store(Request $request, Form $form)
     {
@@ -48,17 +43,17 @@ class AnswerController extends Controller
         // Find missing required questions
         $missingRequiredQuestions = [];
         foreach ($requiredQuestions as $requiredId) {
-            if (!in_array($requiredId, $answeredQuestionIds)) {
+            if (! in_array($requiredId, $answeredQuestionIds)) {
                 $missingRequiredQuestions[] = $requiredId;
             }
         }
 
-        if (!empty($missingRequiredQuestions)) {
+        if (! empty($missingRequiredQuestions)) {
             return redirect()->back()->withErrors(['answers' => 'Not all required questions have been answered.']);
         }
 
         foreach ($submittedAnswers as $answerData) {
-            if (!isset($answerData['question_id'])) {
+            if (! isset($answerData['question_id'])) {
                 return redirect()->back()->withErrors(['answers' => 'Each answer must have a question ID']);
             }
 
@@ -67,14 +62,14 @@ class AnswerController extends Controller
             }
 
             $questionExists = Question::where('id', $answerData['question_id'])->exists();
-            if (!$questionExists) {
+            if (! $questionExists) {
                 return redirect()->back()->withErrors(['answers' => 'Invalid question ID provided']);
             }
 
             $questionBelongsToForm = Question::where('id', $answerData['question_id'])
                 ->where('form_id', $form->id)
                 ->exists();
-            if (!$questionBelongsToForm) {
+            if (! $questionBelongsToForm) {
                 return redirect()->back()->withErrors(['answers' => 'Question does not belong to this form']);
             }
         }
@@ -104,16 +99,9 @@ class AnswerController extends Controller
         return Inertia::render('form/Answers', ['answers' => $answers, 'questions' => $questions, 'form' => $form]);
     }
 
-    public function edit($id)
-    {
-    }
+    public function edit($id) {}
 
-    public function update(Request $request, $id)
-    {
-    }
+    public function update(Request $request, $id) {}
 
-    public function destroy($id)
-    {
-    }
-
+    public function destroy($id) {}
 }
