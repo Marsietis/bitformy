@@ -9,11 +9,12 @@ import * as openpgp from 'openpgp';
 import { computed, ref } from 'vue';
 
 const page = usePage();
-const props = defineProps({
-    form: Object,
-});
 
-const user = computed(() => page.props.auth.user)
+const props = defineProps<{
+    form: any;
+}>();
+
+const user = computed(() => page.props.auth.user);
 const form = props.form;
 const questions = form.questions;
 const armoredPublicKey = form.user.public_key;
@@ -31,7 +32,7 @@ const breadcrumbs = computed(function () {
     ];
 });
 
-const getOptions = (optionsString) => {
+const getOptions = (optionsString: any) => {
     if (!optionsString) {
         return {
             items: [],
@@ -43,14 +44,19 @@ const getOptions = (optionsString) => {
 
 // Function to set up initial empty answers for all questions
 const initializeAnswers = () => {
-    const initialAnswers = {};
+    const initialAnswers = [];
 
     for (const question of questions) {
         const options = getOptions(question.options);
 
-        if (question.type === 'choice' && options.multiple === true) {
-            // Use an empty array for questions that allow multiple answers
-            initialAnswers[question.id] = [];
+        if (question.type === 'choice') {
+            if (options.multiple) {
+                // Use an empty array for questions that allow multiple answers
+                initialAnswers[question.id] = [];
+            } else {
+                // Use null for all other questions
+                initialAnswers[question.id] = null;
+            }
         } else {
             // Use null for all other questions
             initialAnswers[question.id] = null;
@@ -86,29 +92,30 @@ const copyLink = () => {
     });
 };
 
-const submitForm = async () => {
-    // check if all required questions have answers
+const validateRequiredFields = () => {
     for (const question of questions) {
-        if (question.required === true) {
+        if (question.required) {
             const answer = answers.value[question.id];
 
-            let isEmptyAnswer = false;
-
-            if (answer === null || answer === '') {
-                isEmptyAnswer = true;
-            }
-
-            if (Array.isArray(answer) && answer.length === 0) {
-                isEmptyAnswer = true;
-            }
-
-            if (isEmptyAnswer) {
+            if (!hasValidAnswer(answer)) {
                 submissionStatus.value = 'Error: The question "' + question.title + '" is required.';
                 return;
             }
         }
     }
+};
 
+const hasValidAnswer = (answer: any) => {
+    if (Array.isArray(answer)) return answer.length > 0;
+    return answer !== null && answer !== '' && answer !== undefined;
+};
+
+const isSubmitting = ref(false); // To prevent multiple submissions at the same time
+
+const submitForm = async () => {
+    if (isSubmitting.value) return;
+    isSubmitting.value = true;
+    validateRequiredFields();
     if (!armoredPublicKey) {
         submissionStatus.value = 'Error: Form creator has no public key. Cannot encrypt answers.';
         return;
@@ -126,17 +133,7 @@ const submitForm = async () => {
         for (const question of questions) {
             const answer = answers.value[question.id];
 
-            let hasAnswer = false;
-
-            if (answer !== null && answer !== '') {
-                hasAnswer = true;
-            }
-
-            if (Array.isArray(answer) && answer.length > 0) {
-                hasAnswer = true;
-            }
-
-            if (hasAnswer) {
+            if (hasValidAnswer(answer)) {
                 answersToEncrypt.push({
                     question: question,
                     answer: answer,
@@ -177,16 +174,19 @@ const submitForm = async () => {
                 onSuccess: function () {
                     submitted.value = true;
                     submissionStatus.value = 'Form submitted successfully!';
+                    isSubmitting.value = false;
                 },
                 onError: function (errors) {
                     console.error('Submission error:', errors);
                     submissionStatus.value = 'An error occurred during submission. Please try again.';
+                    isSubmitting.value = false;
                 },
             },
         );
     } catch (error) {
         console.error(error);
         submissionStatus.value = 'Error: Could not encrypt answers.';
+        isSubmitting.value = false;
     }
 };
 
@@ -228,8 +228,8 @@ function cancelDelete() {
 
                         <!-- Creator Actions -->
                         <div v-if="user && form.user_id === user.id" class="ml-6 flex items-center gap-3">
-                            <Button @click="router.visit(route('answers.show', form.id));" variant="outline" size="sm"> View Answers</Button>
-                            <Button @click="router.visit(route('forms.edit', form.id));" variant="outline" size="sm"> Edit</Button>
+                            <Button @click="router.visit(route('answers.show', form.id))" variant="outline" size="sm"> View Answers</Button>
+                            <Button @click="router.visit(route('forms.edit', form.id))" variant="outline" size="sm"> Edit</Button>
                             <Button @click="showDeleteConfirm = true" variant="destructive" size="sm"> Delete</Button>
 
                             <!-- Share Popover -->
@@ -308,17 +308,20 @@ function cancelDelete() {
                                                             :name="`question_${question.id}`"
                                                             :value="option"
                                                             v-model="answers[question.id]"
-                                                        class="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                                                            class="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                                                             :required="
                                                                 question.required && !getOptions(question.options).multiple && !answers[question.id]
                                                             "
                                                         />
-                                                        <Label :for="`q${index}_option${optionIndex}`" class="cursor-pointer font-normal text-foreground">
+                                                        <Label
+                                                            :for="`q${index}_option${optionIndex}`"
+                                                            class="cursor-pointer font-normal text-foreground"
+                                                        >
                                                             {{ option }}
                                                         </Label>
                                                     </div>
                                                 </div>
-                                                <div v-else class="italic text-muted-foreground/80">No options available</div>
+                                                <div v-else class="text-muted-foreground/80 italic">No options available</div>
                                             </div>
                                         </div>
                                     </div>
@@ -342,7 +345,7 @@ function cancelDelete() {
                 <!-- Success State -->
                 <div v-else class="rounded-xl border border-border bg-card p-12 text-center shadow-sm">
                     <div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/15 dark:bg-emerald-500/25">
-                        <svg class="h-8 w-8 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="h-8 w-8 text-emerald-500" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                         </svg>
                     </div>
@@ -361,7 +364,7 @@ function cancelDelete() {
             <div class="relative mx-auto w-full max-w-md rounded-xl border border-border bg-card shadow-xl">
                 <div class="p-6">
                     <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 dark:bg-destructive/20">
-                        <svg class="h-6 w-6 text-destructive" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg class="h-6 w-6 text-destructive" viewBox="0 0 24 24" stroke="currentColor">
                             <path
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
