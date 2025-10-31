@@ -272,6 +272,7 @@ const submit = () => {
                                                     @focus="$event.target.select()"
                                                 />
                                                 <Input
+                                                    v-if="question.type === 'text'"
                                                     class="mt-6 cursor-not-allowed"
                                                     type="text"
                                                     placeholder="Enter your answer"
