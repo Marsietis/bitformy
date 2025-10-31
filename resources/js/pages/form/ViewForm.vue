@@ -1,4 +1,4 @@
-<script setup lang="js">
+<script setup lang="ts">
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,29 +9,24 @@ import * as openpgp from 'openpgp';
 import { computed, ref } from 'vue';
 
 const page = usePage();
-
-const user = computed(function () {
-    return page.props.auth.user;
-});
-
 const props = defineProps({
     form: Object,
-    questions: Array,
 });
 
-const breadcrumbs = computed(function () {
-    if (!user.value) {
-        return [];
-    }
+const user = computed(() => page.props.auth.user)
+const form = props.form;
+const questions = form.questions;
+const armoredPublicKey = form.user.public_key;
 
+const breadcrumbs = computed(function () {
     return [
         {
             title: 'Forms',
             href: '/dashboard',
         },
         {
-            title: props.form.title,
-            href: `/form/${props.form.id}`,
+            title: form.title,
+            href: `/forms/${form.id}`,
         },
     ];
 });
@@ -48,11 +43,10 @@ const getOptions = (optionsString) => {
 
 // Function to set up initial empty answers for all questions
 const initializeAnswers = () => {
-    let initialAnswers = {};
+    const initialAnswers = {};
 
-    for (let i = 0; i < props.questions.length; i++) {
-        let question = props.questions[i];
-        let options = getOptions(question.options);
+    for (const question of questions) {
+        const options = getOptions(question.options);
 
         if (question.type === 'choice' && options.multiple === true) {
             // Use an empty array for questions that allow multiple answers
@@ -62,23 +56,17 @@ const initializeAnswers = () => {
             initialAnswers[question.id] = null;
         }
     }
-
     return initialAnswers;
 };
 
 const answers = ref(initializeAnswers());
 const submissionStatus = ref('');
 const submitted = ref(false);
-
-const isFormCreator = computed(function () {
-    return user.value && props.form.user_id === user.value.id;
-});
-
 const showSharePopover = ref(false);
 const copyStatus = ref('Copy');
 
 const formLink = computed(() => {
-    return `${window.location.origin}/form/${props.form.id}`;
+    return `${page.props.appUrl}/forms/${form.id}`;
 });
 
 const layout = computed(function () {
@@ -90,23 +78,19 @@ const layout = computed(function () {
 });
 
 const copyLink = () => {
-    if (formLink.value) {
-        navigator.clipboard.writeText(formLink.value).then(() => {
-            copyStatus.value = 'Copied!';
-            setTimeout(() => {
-                copyStatus.value = 'Copy';
-            }, 2000);
-        });
-    }
+    navigator.clipboard.writeText(formLink.value).then(() => {
+        copyStatus.value = 'Copied!';
+        setTimeout(() => {
+            copyStatus.value = 'Copy';
+        }, 2000);
+    });
 };
 
 const submitForm = async () => {
     // check if all required questions have answers
-    for (let i = 0; i < props.questions.length; i++) {
-        let question = props.questions[i];
-
+    for (const question of questions) {
         if (question.required === true) {
-            let answer = answers.value[question.id];
+            const answer = answers.value[question.id];
 
             let isEmptyAnswer = false;
 
@@ -125,7 +109,7 @@ const submitForm = async () => {
         }
     }
 
-    if (!props.form.user.public_key) {
+    if (!armoredPublicKey) {
         submissionStatus.value = 'Error: Form creator has no public key. Cannot encrypt answers.';
         return;
     }
@@ -134,14 +118,13 @@ const submitForm = async () => {
 
     try {
         const publicKey = await openpgp.readKey({
-            armoredKey: props.form.user.public_key,
+            armoredKey: armoredPublicKey,
         });
 
-        let answersToEncrypt = [];
+        const answersToEncrypt = [];
 
-        for (let i = 0; i < props.questions.length; i++) {
-            let question = props.questions[i];
-            let answer = answers.value[question.id];
+        for (const question of questions) {
+            const answer = answers.value[question.id];
 
             let hasAnswer = false;
 
@@ -161,18 +144,15 @@ const submitForm = async () => {
             }
         }
 
-        let encryptedAnswers = [];
+        const encryptedAnswers = [];
 
-        for (let i = 0; i < answersToEncrypt.length; i++) {
-            let item = answersToEncrypt[i];
-            let question = item.question;
-            let answer = item.answer;
+        for (const item of answersToEncrypt) {
+            const question = item.question;
+            const answer = item.answer;
 
-            let answerString;
+            let answerString = String(answer);
             if (typeof answer === 'object') {
                 answerString = JSON.stringify(answer);
-            } else {
-                answerString = String(answer);
             }
 
             const message = await openpgp.createMessage({
@@ -191,7 +171,7 @@ const submitForm = async () => {
         }
 
         router.post(
-            `/form/${props.form.id}/submit`,
+            route('answers.store', form.id),
             { answers: encryptedAnswers },
             {
                 onSuccess: function () {
@@ -218,18 +198,10 @@ function submitAnotherResponse() {
 
 const showDeleteConfirm = ref(false);
 
-function editForm() {
-    router.visit(`/form/${props.form.id}/edit`);
-}
-
 function deleteForm() {
-    router.delete(`/form/${props.form.id}`, {
+    router.delete(route('forms.destroy', form.id), {
         onSuccess: function () {
             router.visit('/dashboard');
-        },
-        onError: function (errors) {
-            console.error('Delete error:', errors);
-            submissionStatus.value = 'An error occurred while deleting the form.';
         },
     });
     showDeleteConfirm.value = false;
@@ -237,10 +209,6 @@ function deleteForm() {
 
 function cancelDelete() {
     showDeleteConfirm.value = false;
-}
-
-function viewAnswers() {
-    router.visit(`/form/${props.form.id}/answers`);
 }
 </script>
 
@@ -259,9 +227,9 @@ function viewAnswers() {
                         </div>
 
                         <!-- Creator Actions -->
-                        <div v-if="isFormCreator" class="ml-6 flex items-center gap-3">
-                            <Button @click="viewAnswers" variant="outline" size="sm"> View Answers</Button>
-                            <Button @click="editForm" variant="outline" size="sm"> Edit</Button>
+                        <div v-if="user && form.user_id === user.id" class="ml-6 flex items-center gap-3">
+                            <Button @click="router.visit(route('answers.show', form.id));" variant="outline" size="sm"> View Answers</Button>
+                            <Button @click="router.visit(route('forms.edit', form.id));" variant="outline" size="sm"> Edit</Button>
                             <Button @click="showDeleteConfirm = true" variant="destructive" size="sm"> Delete</Button>
 
                             <!-- Share Popover -->
