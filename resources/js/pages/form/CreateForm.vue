@@ -14,7 +14,6 @@ const breadcrumbs = [
     },
     {
         title: 'New Form',
-        href: '/form/create',
     },
 ];
 
@@ -77,7 +76,7 @@ const removeOption = (question, index) => {
 };
 
 const submit = () => {
-    form.post('/form');
+    form.post(route('forms.store'));
 };
 </script>
 

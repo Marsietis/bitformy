@@ -63,7 +63,7 @@ const updatePassword = () => {
             <div>
                 <div class="grid gap-4" v-if="!$page.props.userHas2fa">
                 <HeadingSmall title="Two-Factor Authentication" description="Add another layer of security to your account. You’ll need to verify yourself with 2FA every time you sign in." />
-                <a href="/2fa"><Button>Set up 2FA</Button></a>
+                <a :href="route('2fa.show')"><Button>Set up 2FA</Button></a>
                 </div>
                 <div v-else><Disable2fa /></div>
             </div>

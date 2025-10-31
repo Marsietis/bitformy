@@ -11,8 +11,7 @@ const props = defineProps({
 
 const breadcrumbs = [
     {
-        title: 'Dashboard',
-        href: '/dashboard',
+        title: 'Dashboard'
     },
 ];
 </script>
@@ -33,7 +32,7 @@ const breadcrumbs = [
                     <div class="flex items-center justify-between mb-6">
                         <h2 class="text-xl font-semibold text-foreground">Your Forms</h2>
                         <Button asChild>
-                            <Link href="/form/new" class="gap-2">
+                            <Link :href="route('forms.create')" class="gap-2">
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                                 </svg>
@@ -48,7 +47,7 @@ const breadcrumbs = [
                             :key="form.id"
                             class="group rounded-lg border border-border p-6 transition-all duration-200 hover:border-primary/50 hover:shadow-sm"
                         >
-                            <Link :href="`/form/${form.id}`" class="block">
+                            <Link :href="route('forms.show', form.id)" class="block">
                                 <div class="flex items-center justify-between">
                                     <div class="flex-1">
                                         <h3 class="text-lg font-semibold text-foreground transition-colors group-hover:text-primary">
@@ -92,7 +91,7 @@ const breadcrumbs = [
                         <h3 class="mb-2 text-lg font-semibold text-foreground">No forms created yet</h3>
                         <p class="mb-8 text-muted-foreground">Create your first form to start collecting responses</p>
                         <Button asChild size="lg">
-                            <Link href="/form/new" class="gap-2">
+                            <Link :href="route('forms.create')" class="gap-2">
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                                 </svg>

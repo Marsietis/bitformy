@@ -17,6 +17,8 @@ class Form extends Model
         'user_id',
         'title',
         'description',
+        'created_at',
+        'updated_at',
     ];
 
     protected $primaryKey = 'id';
