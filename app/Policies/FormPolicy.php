@@ -4,18 +4,9 @@ namespace App\Policies;
 
 use App\Models\Form;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class FormPolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(User $user): bool
-    {
-        return false;
-    }
-
     /**
      * Determine whether the user can view the model.
      */
