@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head } from '@inertiajs/vue3';
-import { Check, Copy, Download, Key, Shield } from 'lucide-vue-next';
+import { Check, Copy, Download, Shield } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 defineProps<{
