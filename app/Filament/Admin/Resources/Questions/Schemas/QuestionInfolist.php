@@ -3,7 +3,6 @@
 namespace App\Filament\Admin\Resources\Questions\Schemas;
 
 use App\Models\Question;
-use BladeUI\Icons\Components\Icon;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
