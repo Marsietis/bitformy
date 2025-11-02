@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreAnswerRequest;
 use App\Models\Answer;
 use App\Models\Form;
 use App\Models\Question;
-use App\Http\Requests\StoreAnswerRequest;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Inertia\Inertia;

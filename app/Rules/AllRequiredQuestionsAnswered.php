@@ -2,9 +2,9 @@
 
 namespace App\Rules;
 
+use App\Models\Question;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
-use App\Models\Question;
 
 class AllRequiredQuestionsAnswered implements ValidationRule
 {
@@ -28,5 +28,4 @@ class AllRequiredQuestionsAnswered implements ValidationRule
             $fail('Not all required questions have been answered.');
         }
     }
-
 }

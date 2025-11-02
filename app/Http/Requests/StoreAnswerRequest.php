@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 use App\Rules\AllRequiredQuestionsAnswered;
+use Illuminate\Foundation\Http\FormRequest;
 
 class StoreAnswerRequest extends FormRequest
 {
