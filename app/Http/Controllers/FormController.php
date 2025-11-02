@@ -6,6 +6,7 @@ use App\Http\Requests\StoreFormRequest;
 use App\Http\Requests\UpdateFormRequest;
 use App\Models\Form;
 use App\Models\Question;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 
 class FormController extends Controller
@@ -72,9 +73,7 @@ class FormController extends Controller
 
     public function edit(Form $form)
     {
-        if (auth()->user()->cannot('update', $form)) {
-            abort(403);
-        }
+        Gate::authorize('update', $form);
 
         $questions = Question::where('form_id', $form->id)
             ->orderBy('order')
@@ -131,9 +130,7 @@ class FormController extends Controller
 
     public function update(UpdateFormRequest $request, Form $form)
     {
-        if ($request->user()->cannot('update', $form)) {
-            abort(403);
-        }
+        Gate::authorize('update', $form);
 
         $validatedData = $request->validated();
 
@@ -230,9 +227,7 @@ class FormController extends Controller
 
     public function destroy(Form $form)
     {
-        if (auth()->user()->cannot('delete', $form)) {
-            abort(403);
-        }
+        Gate::authorize('delete', $form);
 
         $form->delete();
 
@@ -241,9 +236,7 @@ class FormController extends Controller
 
     public function regenerateLink(Form $form)
     {
-        if (auth()->user()->cannot('update', $form)) {
-            abort(403);
-        }
+        Gate::authorize('update', $form);
 
         $oldId = $form->id;
 
