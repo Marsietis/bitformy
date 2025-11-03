@@ -1,17 +1,16 @@
 <script setup lang="ts">
+import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
-import { Button } from '@/components/ui/button';
 
 // Define props to receive data from the controller
 defineProps({
     forms: Array,
-    user: Object,
 });
 
 const breadcrumbs = [
     {
-        title: 'Dashboard'
+        title: 'Dashboard',
     },
 ];
 </script>
@@ -29,7 +28,7 @@ const breadcrumbs = [
                 </div>
                 <!-- Forms Section -->
                 <div class="rounded-xl border border-border bg-card p-8 shadow-sm">
-                    <div class="flex items-center justify-between mb-6">
+                    <div class="mb-6 flex items-center justify-between">
                         <h2 class="text-xl font-semibold text-foreground">Your Forms</h2>
                         <Button asChild>
                             <Link :href="route('forms.create')" class="gap-2">
@@ -59,20 +58,30 @@ const breadcrumbs = [
                                         <div class="mt-4 flex items-center gap-6 text-sm text-muted-foreground">
                                             <span v-if="form.created_at" class="flex items-center gap-1">
                                                 <svg class="h-4 w-4 fill-none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                                    />
                                                 </svg>
                                                 Created {{ new Date(form.created_at).toLocaleDateString() }}
                                             </span>
                                             <span v-if="form.updated_at" class="flex items-center gap-1">
                                                 <svg class="h-4 w-4 fill-none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                                    />
                                                 </svg>
                                                 Updated {{ new Date(form.updated_at).toLocaleDateString() }}
                                             </span>
                                         </div>
                                     </div>
                                     <div class="ml-6 flex items-center text-muted-foreground transition-colors group-hover:text-primary">
-                                        <svg class="w-5 h-5 fill-none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="h-5 w-5 fill-none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                         </svg>
                                     </div>
@@ -82,10 +91,15 @@ const breadcrumbs = [
                     </div>
 
                     <!-- Empty State -->
-                    <div v-else class="text-center py-12">
+                    <div v-else class="py-12 text-center">
                         <div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
                             <svg class="h-8 w-8 text-muted-foreground" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                />
                             </svg>
                         </div>
                         <h3 class="mb-2 text-lg font-semibold text-foreground">No forms created yet</h3>
