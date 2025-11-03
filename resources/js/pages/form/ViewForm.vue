@@ -16,7 +16,7 @@ const props = defineProps<{
 
 const user = computed(() => page.props.auth.user);
 const form = props.form;
-const questions = form.questions.map((question) => ({
+const questions = form.questions.map((question: { options: string }) => ({
     ...question,
     options: JSON.parse(question.options),
 }));
