@@ -78,7 +78,8 @@ class AuthenticatedSessionController extends Controller
         }
 
         // If user doesn't exist, check if there is already a fake salt for this email
-        $fakeSalt = FakeSalt::where('email', $request->email)->first();
+        $hashedEmail = hash('sha256', $request->email);
+        $fakeSalt = FakeSalt::where('email', $hashedEmail)->first();
 
         if ($fakeSalt) {
             return response()->json([
@@ -90,7 +91,7 @@ class AuthenticatedSessionController extends Controller
         $randomSalt = bin2hex(random_bytes(32));
 
         FakeSalt::create([
-            'email' => $request->email,
+            'email' => $hashedEmail,
             'salt' => $randomSalt,
         ]);
 
