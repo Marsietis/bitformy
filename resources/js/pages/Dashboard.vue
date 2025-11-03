@@ -93,7 +93,7 @@ const breadcrumbs = [
                     <!-- Empty State -->
                     <div v-else class="py-12 text-center">
                         <div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-                            <svg class="h-8 w-8 text-muted-foreground" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="h-8 w-8 fill-none text-muted-foreground" stroke="currentColor" viewBox="0 0 24 24">
                                 <path
                                     stroke-linecap="round"
                                     stroke-linejoin="round"
