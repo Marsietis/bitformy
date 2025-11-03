@@ -16,10 +16,10 @@ class StoreFormRequest extends FormRequest
             'questions' => 'required|array|min:1',
             'questions.*.title' => 'required|string|max:255',
             'questions.*.type' => 'required|string', new Enum(QuestionType::class),
-            'questions.*.required' => 'boolean',
+            'questions.*.required' => 'required|boolean',
             'questions.*.options' => 'array|required_if:questions.*.type,choice',
-            'questions.*.options.*.text' => 'string|max:255',
-            'questions.*.multipleChoice' => 'boolean',
+            'questions.*.options.*.text' => 'string|max:255|required',
+            'questions.*.multipleChoice' => 'boolean|required',
         ];
     }
 
