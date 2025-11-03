@@ -66,4 +66,25 @@ class Form extends Model
     {
         return json_encode(array_column($options, 'text'));
     }
+
+    public function regenerateLink()
+    {
+        // Create new form with same data
+        $newForm = self::create([
+            'user_id' => $this->user_id,
+            'title' => $this->title,
+            'description' => $this->description,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+        ]);
+
+        // Transfer relationships to new form
+        $this->questions()->update(['form_id' => $newForm->id]);
+        $this->answers()->update(['form_id' => $newForm->id]);
+
+        // Delete old form
+        $this->delete();
+
+        return $newForm;
+    }
 }

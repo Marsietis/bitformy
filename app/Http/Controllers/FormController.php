@@ -201,29 +201,4 @@ class FormController extends Controller
 
         return redirect()->route('dashboard')->with('success', 'Form deleted successfully');
     }
-
-    public function regenerateLink(Form $form)
-    {
-        Gate::authorize('update', $form);
-
-        $oldId = $form->id;
-
-        $newForm = Form::create([
-            'user_id' => $form->user_id,
-            'title' => $form->title,
-            'description' => $form->description,
-            'created_at' => $form->created_at,
-            'updated_at' => $form->updated_at,
-        ]);
-
-        $newId = $newForm->id;
-
-        $form->questions()->update(['form_id' => $newId]);
-        $form->answers()->update(['form_id' => $newId]);
-
-        Form::where('id', $oldId)->delete();
-
-        return redirect()->route('forms.edit', ['form' => $newId])
-            ->with('success', 'New form link generated successfully');
-    }
 }

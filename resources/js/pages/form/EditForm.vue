@@ -152,7 +152,7 @@ const copyLink = () => {
 
 const regenerateLink = () => {
     isRegeneratingLink.value = true;
-    form.post(`/form/${props.form.id}/regenerate-link`, {
+    form.post(route('forms.regenerate_link', { form: props.form.id }), {
         preserveScroll: false,
         onFinish: () => {
             isRegeneratingLink.value = false;
@@ -276,7 +276,9 @@ const cancelRegenerateLink = () => {
                                         <div class="mb-6 flex items-start justify-between">
                                             <div class="flex items-center gap-3">
                                                 <!-- Drag handle -->
-                                                <div class="drag-handle cursor-move p-1 text-muted-foreground transition-colors hover:text-foreground">
+                                                <div
+                                                    class="drag-handle cursor-move p-1 text-muted-foreground transition-colors hover:text-foreground"
+                                                >
                                                     <svg
                                                         xmlns="http://www.w3.org/2000/svg"
                                                         class="h-5 w-5"
@@ -569,7 +571,13 @@ const cancelRegenerateLink = () => {
                     <div class="p-6">
                         <div class="flex items-start gap-4">
                             <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-500/20">
-                                <svg class="h-6 w-6 text-orange-600 dark:text-orange-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <svg
+                                    class="h-6 w-6 text-orange-600 dark:text-orange-400"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                >
                                     <path
                                         stroke-linecap="round"
                                         stroke-linejoin="round"

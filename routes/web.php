@@ -3,6 +3,7 @@
 use App\Http\Controllers\AnswerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FormController;
+use App\Http\Controllers\RegenerateFormLinkController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
@@ -14,7 +15,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('forms/{form}/answers', [AnswerController::class, 'show'])->name('answers.show');
     Route::get('forms/{form}/edit', [FormController::class, 'edit'])->name('forms.edit');
     Route::put('forms/{form}', [FormController::class, 'update'])->name('forms.update');
-    Route::post('forms/{form}/regenerate-link', [FormController::class, 'regenerateLink'])->name('forms.regenerate_link');
+    Route::post('forms/{form}/regenerate-link', RegenerateFormLinkController::class)->name('forms.regenerate_link');
     Route::delete('forms/{form}', [FormController::class, 'destroy'])->name('forms.destroy');
 });
 
