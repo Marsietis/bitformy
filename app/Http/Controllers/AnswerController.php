@@ -21,7 +21,7 @@ class AnswerController extends Controller
             ];
         }, $request->validated('answers')));
 
-        return redirect()->back()->with('success', 'Form submitted successfully!');
+        return back()->with('success', 'Form submitted successfully!');
     }
 
     public function show(Form $form)
