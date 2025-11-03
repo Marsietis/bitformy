@@ -16,14 +16,12 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'New Form',
-        href: '/forms/new',
+        href: '/forms/create',
         icon: FilePlus,
     },
 ];
 
-const footerNavItems: NavItem[] = [
-
-];
+const footerNavItems: NavItem[] = [];
 </script>
 
 <template>
@@ -31,9 +29,12 @@ const footerNavItems: NavItem[] = [
         <SidebarHeader>
             <SidebarMenu>
                 <SidebarMenuItem>
-                        <Link :href="route('dashboard')">
-                            <AppLogo class="flex justify-center" />
-                            <hr class="my-4 h-px border-t-0 bg-transparent bg-gradient-to-r from-transparent via-neutral-500 to-transparent opacity-25 dark:via-neutral-400" />                        </Link>
+                    <Link :href="route('dashboard')">
+                        <AppLogo class="flex justify-center" />
+                        <hr
+                            class="my-4 h-px border-t-0 bg-transparent bg-gradient-to-r from-transparent via-neutral-500 to-transparent opacity-25 dark:via-neutral-400"
+                        />
+                    </Link>
                 </SidebarMenuItem>
             </SidebarMenu>
         </SidebarHeader>
