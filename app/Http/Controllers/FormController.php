@@ -34,49 +34,30 @@ class FormController extends Controller
     {
         $validatedData = $request->validated();
 
-        $currentUserId = auth()->id();
-
-        $form = new Form;
-        $form->user_id = $currentUserId;
-        $form->title = $validatedData['title'];
-        $form->description = $validatedData['description'];
-        $form->save();
+        $form = Form::create([
+            'user_id' => auth()->id(),
+            'title' => $validatedData['title'],
+            'description' => $validatedData['description'],
+        ]);
 
         $questionOrder = 0;
 
-        foreach ($validatedData['questions'] as $questionData) {
-            $question = new Question;
+        $questions = $validatedData['questions'];
 
-            $question->form_id = $form->id;
-            $question->title = $questionData['title'];
-            $question->type = $questionData['type'];
-            $question->order = $questionOrder;
+        foreach ($questions as $question) {
 
-            if (isset($questionData['required'])) {
-                $question->required = $questionData['required'];
-            } else {
-                $question->required = false;
-            }
+            $question = Question::create([
+                'form_id' => $form->id,
+                'title' => $question['title'],
+                'type' => $question['type'],
+                'required' => $question['required'],
+                'order' => $questionOrder,
+                'options' => json_encode(array_map(function ($option) {
+                    return $option['text'];
+                }, $question['options'])),
+                'allow_multiple' => $question['multipleChoice'],
+            ]);
 
-            if ($questionData['type'] === 'choice') {
-                if (! empty($questionData['options'])) {
-                    $optionTexts = [];
-                    foreach ($questionData['options'] as $option) {
-                        $optionTexts[] = $option['text'];
-                    }
-
-                    $allowMultiple = false;
-                    if (isset($questionData['multipleChoice'])) {
-                        $allowMultiple = $questionData['multipleChoice'];
-                    }
-                    $question->options = json_encode($optionTexts);
-                    $question->allow_multiple = $allowMultiple;
-                }
-            } else {
-                $question->options = null;
-            }
-
-            $question->save();
             $questionOrder++;
         }
 
