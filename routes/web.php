@@ -4,13 +4,12 @@ use App\Http\Controllers\AnswerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FormController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::inertia('/', 'Welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
-    Route::get('forms/new', action: fn () => Inertia::render('form/CreateForm'))->name('forms.create');
+    Route::get('forms/create', [FormController::class, 'create'])->name('forms.create');
     Route::post('forms', [FormController::class, 'store'])->name('forms.store');
     Route::get('forms/{form}/answers', [AnswerController::class, 'show'])->name('answers.show');
     Route::get('forms/{form}/edit', [FormController::class, 'edit'])->name('forms.edit');

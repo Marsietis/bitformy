@@ -7,6 +7,13 @@ import { Head, useForm } from '@inertiajs/vue3';
 import { nextTick, ref } from 'vue';
 import draggable from 'vuedraggable';
 
+const props = defineProps({
+    questionTypes: {
+        type: Array,
+        required: true,
+    },
+});
+
 const breadcrumbs = [
     {
         title: 'Forms',
@@ -61,7 +68,7 @@ const copyQuestion = (questionIndex) => {
     };
     form.questions.splice(questionIndex + 1, 0, copiedQuestion);
     focusNextQuestionTitle(newQuestionId);
-}
+};
 
 const focusNextQuestionTitle = (questionId) => {
     nextTick(() => {
@@ -155,7 +162,7 @@ const submit = () => {
 
                         <div v-if="form.questions.length === 0" class="rounded-xl border-2 border-dashed border-border/60 py-12 text-center">
                             <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-                                <svg class="h-8 w-8 text-muted-foreground fill-none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="h-8 w-8 fill-none text-muted-foreground" stroke="currentColor" viewBox="0 0 24 24">
                                     <path
                                         stroke-linecap="round"
                                         stroke-linejoin="round"
@@ -197,7 +204,10 @@ const submit = () => {
                                                 <Button variant="ghost" size="sm" type="button" @click="copyQuestion(qIndex)" title="Copy question">
                                                     <svg
                                                         class="h-4 w-4 fill-primary"
-                                                        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 352.804 352.804" xml:space="preserve">
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        viewBox="0 0 352.804 352.804"
+                                                        xml:space="preserve"
+                                                    >
                                                         <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                                                         <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                                                         <g id="SVGRepo_iconCarrier">
@@ -218,7 +228,12 @@ const submit = () => {
                                                     :disabled="qIndex === 0"
                                                     title="Move up"
                                                 >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 fill-none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        class="h-4 w-4 fill-none"
+                                                        viewBox="0 0 24 24"
+                                                        stroke="currentColor"
+                                                    >
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
                                                     </svg>
                                                 </Button>
@@ -231,7 +246,12 @@ const submit = () => {
                                                     :disabled="qIndex === form.questions.length - 1"
                                                     title="Move down"
                                                 >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 fill-none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        class="h-4 w-4 fill-none"
+                                                        viewBox="0 0 24 24"
+                                                        stroke="currentColor"
+                                                    >
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                                     </svg>
                                                 </Button>
@@ -244,7 +264,12 @@ const submit = () => {
                                                     class="text-destructive hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/20"
                                                     title="Remove question"
                                                 >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 fill-none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        class="h-4 w-4 fill-none"
+                                                        viewBox="0 0 24 24"
+                                                        stroke="currentColor"
+                                                    >
                                                         <path
                                                             stroke-linecap="round"
                                                             stroke-linejoin="round"
@@ -287,8 +312,9 @@ const submit = () => {
                                                         v-model="question.type"
                                                         class="flex h-10 w-full cursor-pointer rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                                                     >
-                                                        <option value="text">Text Answer</option>
-                                                        <option value="choice">Choice</option>
+                                                        <option v-for="type in questionTypes" :value="type.value" :key="type.value">
+                                                            {{ type.label }}
+                                                        </option>
                                                     </select>
                                                 </div>
 

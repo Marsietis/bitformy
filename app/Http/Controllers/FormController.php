@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\QuestionType;
 use App\Http\Requests\StoreFormRequest;
 use App\Http\Requests\UpdateFormRequest;
 use App\Models\Form;
@@ -15,6 +16,17 @@ class FormController extends Controller
     {
         return Inertia::render('form/ViewForm', [
             'form' => Form::with(['questions', 'user:id,public_key'])->findOrFail($id),
+        ]);
+    }
+
+    public function create()
+    {
+        return Inertia::render('form/CreateForm', [
+            'questionTypes' => collect(QuestionType::cases())->map(fn ($case) => [
+                'name' => $case->name,
+                'value' => $case->value,
+                'label' => $case->label(),
+            ]),
         ]);
     }
 
