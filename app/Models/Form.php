@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class Form extends Model
 {
@@ -36,6 +36,11 @@ class Form extends Model
         });
     }
 
+    public function generateSubmissionId(): string
+    {
+        return Str::uuid()->toString();
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -46,8 +51,8 @@ class Form extends Model
         return $this->hasMany(Question::class);
     }
 
-    public function answers(): HasManyThrough
+    public function answers(): HasMany
     {
-        return $this->hasManyThrough(Answer::class, Question::class);
+        return $this->hasMany(Answer::class);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Rules\AllRequiredQuestionsAnswered;
+use App\Rules\AnswersBelongToForm;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreAnswerRequest extends FormRequest
@@ -23,7 +24,7 @@ class StoreAnswerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'answers' => ['required', 'array', 'min:1', new AllRequiredQuestionsAnswered($this->route('form')->id)],
+            'answers' => ['required', 'array', 'min:1', new AnswersBelongToForm($this->route('form')->id), new AllRequiredQuestionsAnswered($this->route('form')->id)],
             'answers.*.question_id' => 'required|integer|distinct|exists:questions,id',
             'answers.*.answer' => 'required|string|regex:/^-----BEGIN PGP MESSAGE-----.*-----END PGP MESSAGE-----$/s',
         ];
