@@ -33,6 +33,7 @@ export function generateSalt() {
     crypto.getRandomValues(array);
     return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
+
 const decodeBase64 = (base64) => {
     const binaryString = atob(base64);
     const len = binaryString.length;
