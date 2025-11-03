@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,7 @@ use Illuminate\Support\Str;
 
 class Form extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, HasUuids, SoftDeletes;
 
     protected $fillable = [
         'user_id',
@@ -26,15 +27,6 @@ class Form extends Model
     public $incrementing = false;
 
     protected $keyType = 'string';
-
-    protected static function boot(): void
-    {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->id = (string) \Illuminate\Support\Str::uuid();
-        });
-    }
 
     public function generateSubmissionId(): string
     {
@@ -54,5 +46,24 @@ class Form extends Model
     public function answers(): HasMany
     {
         return $this->hasMany(Answer::class);
+    }
+
+    public function addQuestions(array $questions): void
+    {
+        foreach ($questions as $order => $questionData) {
+            $this->questions()->create([
+                'title' => $questionData['title'],
+                'type' => $questionData['type'],
+                'required' => $questionData['required'],
+                'order' => $order,
+                'options' => $this->formatOptions($questionData['options'] ?? []),
+                'allow_multiple' => $questionData['multipleChoice'],
+            ]);
+        }
+    }
+
+    private function formatOptions(array $options): string
+    {
+        return json_encode(array_column($options, 'text'));
     }
 }

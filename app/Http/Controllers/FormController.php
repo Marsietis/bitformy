@@ -32,34 +32,9 @@ class FormController extends Controller
 
     public function store(StoreFormRequest $request)
     {
-        $validatedData = $request->validated();
 
-        $form = Form::create([
-            'user_id' => auth()->id(),
-            'title' => $validatedData['title'],
-            'description' => $validatedData['description'],
-        ]);
-
-        $questionOrder = 0;
-
-        $questions = $validatedData['questions'];
-
-        foreach ($questions as $question) {
-
-            $question = Question::create([
-                'form_id' => $form->id,
-                'title' => $question['title'],
-                'type' => $question['type'],
-                'required' => $question['required'],
-                'order' => $questionOrder,
-                'options' => json_encode(array_map(function ($option) {
-                    return $option['text'];
-                }, $question['options'])),
-                'allow_multiple' => $question['multipleChoice'],
-            ]);
-
-            $questionOrder++;
-        }
+        $form = auth()->user()->forms()->create($request->only(['title', 'description']));
+        $form->addQuestions($request->validated('questions'));
 
         return redirect()->route('dashboard')->with('success', 'Form created successfully');
     }

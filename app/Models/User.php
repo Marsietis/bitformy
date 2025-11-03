@@ -72,4 +72,9 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->hasMany(RecoveryKey::class);
     }
+
+    public function forms(): HasMany
+    {
+        return $this->hasMany(Form::class);
+    }
 }
