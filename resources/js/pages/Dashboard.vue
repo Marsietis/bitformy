@@ -1,120 +1,383 @@
 <script setup lang="ts">
+import type { ColumnDef, ColumnFiltersState, SortingState, VisibilityState } from '@tanstack/vue-table';
+import { FlexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useVueTable } from '@tanstack/vue-table';
+import { ArrowUpDown, ChevronDown, Copy, Eye, FilePlusIcon, FileX, MoreHorizontal, Pencil, Search, Trash } from 'lucide-vue-next';
+import { h, ref } from 'vue';
+
+import {
+    AlertDialog,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
 import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { valueUpdater } from '@/utils';
+import { Head, Link, router } from '@inertiajs/vue3';
+
+export interface Form {
+    id: number;
+    title: string;
+    description?: string;
+    created_at: string;
+    updated_at: string;
+}
 
 // Define props to receive data from the controller
-defineProps({
-    forms: Array,
-});
+const props = defineProps<{
+    forms: Form[];
+}>();
 
 const breadcrumbs = [
     {
         title: 'Dashboard',
     },
 ];
+
+// Define table columns
+const columns: ColumnDef<Form>[] = [
+    {
+        accessorKey: 'title',
+        header: ({ column }) => {
+            return h(
+                Button,
+                {
+                    variant: 'ghost',
+                    onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+                },
+                () => ['Title', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })],
+            );
+        },
+        cell: ({ row }) =>
+            h(
+                Link,
+                {
+                    href: route('forms.show', row.original.id),
+                    class: 'font-medium text-foreground hover:text-primary transition-colors',
+                },
+                () => row.getValue('title'),
+            ),
+    },
+    {
+        accessorKey: 'description',
+        header: 'Description',
+        cell: ({ row }) => {
+            const description = row.getValue('description') as string | undefined;
+            return h('div', { class: 'max-w-md truncate text-muted-foreground' }, description || '-');
+        },
+    },
+    {
+        accessorKey: 'created_at',
+        header: ({ column }) => {
+            return h(
+                Button,
+                {
+                    variant: 'ghost',
+                    onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+                },
+                () => ['Created', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })],
+            );
+        },
+        cell: ({ row }) => {
+            const date = new Date(row.getValue('created_at'));
+            return h('div', { class: 'text-muted-foreground' }, date.toLocaleDateString());
+        },
+    },
+    {
+        accessorKey: 'updated_at',
+        header: ({ column }) => {
+            return h(
+                Button,
+                {
+                    variant: 'ghost',
+                    onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+                },
+                () => ['Updated', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })],
+            );
+        },
+        cell: ({ row }) => {
+            const date = new Date(row.getValue('updated_at'));
+            return h('div', { class: 'text-muted-foreground' }, date.toLocaleDateString());
+        },
+    },
+    {
+        id: 'actions',
+        enableHiding: false,
+        cell: ({ row }) => {
+            const form = row.original;
+
+            return h(
+                DropdownMenu,
+                {},
+                {
+                    default: () => [
+                        h(
+                            DropdownMenuTrigger,
+                            { asChild: true },
+                            {
+                                default: () =>
+                                    h(
+                                        Button,
+                                        { variant: 'ghost', class: 'h-8 w-8 p-0' },
+                                        {
+                                            default: () => [h('span', { class: 'sr-only' }, 'Open menu'), h(MoreHorizontal, { class: 'h-4 w-4' })],
+                                        },
+                                    ),
+                            },
+                        ),
+                        h(
+                            DropdownMenuContent,
+                            { align: 'end' },
+                            {
+                                default: () => [
+                                    h(
+                                        DropdownMenuItem,
+                                        {
+                                            onClick: () => router.visit(route('forms.show', form.id)),
+                                        },
+                                        () => [h(Eye), 'View form'],
+                                    ),
+                                    h(
+                                        DropdownMenuItem,
+                                        {
+                                            onClick: () => router.visit(route('forms.edit', form.id)),
+                                        },
+                                        () => [h(Pencil), 'Edit form'],
+                                    ),
+                                    h(DropdownMenuItem, { onClick: () => copyLink(`${window.location.origin}/forms/${form.id}`) }, () => [
+                                        h(Copy),
+                                        'Copy link',
+                                    ]),
+                                    h(DropdownMenuItem, { variant: 'destructive', onClick: () => confirmDelete(form) }, () => [
+                                        h(Trash),
+                                        'Delete form',
+                                    ]),
+                                ],
+                            },
+                        ),
+                    ],
+                },
+            );
+        },
+    },
+];
+
+// Initialize table state
+const sorting = ref<SortingState>([]);
+const columnFilters = ref<ColumnFiltersState>([]);
+const columnVisibility = ref<VisibilityState>({});
+
+// Delete confirmation state
+const formToDelete = ref<Form | null>(null);
+const showDeleteDialog = ref(false);
+
+const confirmDelete = (form: Form) => {
+    formToDelete.value = form;
+    showDeleteDialog.value = true;
+};
+
+const deleteForm = () => {
+    if (formToDelete.value) {
+        router.delete(route('forms.destroy', formToDelete.value.id), {
+            onFinish: () => {
+                showDeleteDialog.value = false;
+                formToDelete.value = null;
+            },
+        });
+    }
+};
+
+const copyStatus = ref('Copy');
+
+const copyLink = (link: string) => {
+    if (link && link.length > 0) {
+        navigator.clipboard.writeText(link).then(() => {
+            copyStatus.value = 'Copied!';
+            setTimeout(() => {
+                copyStatus.value = 'Copy';
+            }, 2000);
+        });
+    }
+};
+
+// Create table instance
+const table = useVueTable({
+    get data() {
+        return props.forms || [];
+    },
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onSortingChange: (updaterOrValue) => valueUpdater(updaterOrValue, sorting),
+    onColumnFiltersChange: (updaterOrValue) => valueUpdater(updaterOrValue, columnFilters),
+    onColumnVisibilityChange: (updaterOrValue) => valueUpdater(updaterOrValue, columnVisibility),
+    state: {
+        get sorting() {
+            return sorting.value;
+        },
+        get columnFilters() {
+            return columnFilters.value;
+        },
+        get columnVisibility() {
+            return columnVisibility.value;
+        },
+    },
+});
 </script>
 
 <template>
     <Head title="Dashboard" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="min-h-screen bg-muted/40 dark:bg-background">
-            <div class="mx-auto max-w-6xl p-6">
-                <!-- Page Header -->
-                <div class="mb-8">
-                    <h1 class="text-3xl font-bold text-foreground">Dashboard</h1>
-                    <p class="mt-2 text-muted-foreground">Manage your forms and view analytics</p>
-                </div>
+        <div class="bg-muted/40 dark:bg-background">
+            <div class="mx-auto mt-12 max-w-6xl p-6">
                 <!-- Forms Section -->
-                <div class="rounded-xl border border-border bg-card p-8 shadow-sm">
-                    <div class="mb-6 flex items-center justify-between">
-                        <h2 class="text-xl font-semibold text-foreground">Your Forms</h2>
+                <Card class="w-full">
+                    <CardHeader class="flex items-center justify-between">
+                        <div>
+                            <CardTitle>Your Forms</CardTitle>
+                            <CardDescription>Manage your forms or create a new one</CardDescription>
+                        </div>
                         <Button asChild>
                             <Link :href="route('forms.create')" class="gap-2">
-                                <svg class="h-4 w-4" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                                </svg>
+                                <FilePlusIcon />
                                 Create New Form
                             </Link>
                         </Button>
-                    </div>
-
-                    <div v-if="forms && forms.length > 0" class="space-y-4">
-                        <div
-                            v-for="form in forms"
-                            :key="form.id"
-                            class="group rounded-lg border border-border p-6 transition-all duration-200 hover:border-primary/50 hover:shadow-sm"
-                        >
-                            <Link :href="route('forms.show', form.id)" class="block">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex-1">
-                                        <h3 class="text-lg font-semibold text-foreground transition-colors group-hover:text-primary">
-                                            {{ form.title }}
-                                        </h3>
-                                        <p v-if="form.description" class="mt-2 line-clamp-2 text-muted-foreground">
-                                            {{ form.description }}
-                                        </p>
-                                        <div class="mt-4 flex items-center gap-6 text-sm text-muted-foreground">
-                                            <span v-if="form.created_at" class="flex items-center gap-1">
-                                                <svg class="h-4 w-4 fill-none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path
-                                                        stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                        stroke-width="2"
-                                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                                    />
-                                                </svg>
-                                                Created {{ new Date(form.created_at).toLocaleDateString() }}
-                                            </span>
-                                            <span v-if="form.updated_at" class="flex items-center gap-1">
-                                                <svg class="h-4 w-4 fill-none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path
-                                                        stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                        stroke-width="2"
-                                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                                                    />
-                                                </svg>
-                                                Updated {{ new Date(form.updated_at).toLocaleDateString() }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="ml-6 flex items-center text-muted-foreground transition-colors group-hover:text-primary">
-                                        <svg class="h-5 w-5 fill-none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                        </svg>
-                                    </div>
+                    </CardHeader>
+                    <CardContent>
+                        <!-- DataTable -->
+                        <div v-if="forms && forms.length > 0" class="w-full">
+                            <!-- Table Controls -->
+                            <div class="flex items-center gap-4 py-4">
+                                <div class="relative w-full max-w-sm items-center">
+                                    <Input
+                                        id="search"
+                                        type="text"
+                                        placeholder="Search..."
+                                        class="pl-10"
+                                        :model-value="(table.getColumn('title')?.getFilterValue() as string) ?? ''"
+                                        @update:model-value="(value) => table.getColumn('title')?.setFilterValue(value)"
+                                    />
+                                    <span class="absolute inset-y-0 start-0 flex items-center justify-center px-2">
+                                        <Search class="size-6 text-muted-foreground" />
+                                    </span>
                                 </div>
-                            </Link>
-                        </div>
-                    </div>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger as-child>
+                                        <Button variant="outline" class="ml-auto"> Columns <ChevronDown class="ml-2 h-4 w-4" /> </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuCheckboxItem
+                                            v-for="column in table.getAllColumns().filter((column) => column.getCanHide())"
+                                            :key="column.id"
+                                            class="capitalize"
+                                            :model-value="column.getIsVisible()"
+                                            @update:model-value="(value) => column.toggleVisibility(!!value)"
+                                        >
+                                            {{ column.id.replace('_', ' ') }}
+                                        </DropdownMenuCheckboxItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
 
-                    <!-- Empty State -->
-                    <div v-else class="py-12 text-center">
-                        <div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-                            <svg class="h-8 w-8 fill-none text-muted-foreground" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                />
-                            </svg>
+                            <!-- Table -->
+                            <div class="rounded-md border">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
+                                            <TableHead v-for="header in headerGroup.headers" :key="header.id">
+                                                <FlexRender
+                                                    v-if="!header.isPlaceholder"
+                                                    :render="header.column.columnDef.header"
+                                                    :props="header.getContext()"
+                                                />
+                                            </TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        <template v-if="table.getRowModel().rows?.length">
+                                            <TableRow
+                                                v-for="row in table.getRowModel().rows"
+                                                :key="row.id"
+                                                :data-state="row.getIsSelected() && 'selected'"
+                                            >
+                                                <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
+                                                    <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
+                                                </TableCell>
+                                            </TableRow>
+                                        </template>
+
+                                        <TableRow v-else>
+                                            <TableCell :colspan="columns.length" class="h-24 text-center"> No results. </TableCell>
+                                        </TableRow>
+                                    </TableBody>
+                                </Table>
+                            </div>
+
+                            <!-- Pagination -->
+                            <div class="flex items-center justify-end gap-2 py-4">
+                                <div class="flex-1 text-sm text-muted-foreground">{{ table.getFilteredRowModel().rows.length }} form(s) found.</div>
+                                <div class="flex gap-2">
+                                    <Button variant="outline" size="sm" :disabled="!table.getCanPreviousPage()" @click="table.previousPage()">
+                                        Previous
+                                    </Button>
+                                    <Button variant="outline" size="sm" :disabled="!table.getCanNextPage()" @click="table.nextPage()"> Next </Button>
+                                </div>
+                            </div>
                         </div>
-                        <h3 class="mb-2 text-lg font-semibold text-foreground">No forms created yet</h3>
-                        <p class="mb-8 text-muted-foreground">Create your first form to start collecting responses</p>
-                        <Button asChild size="lg">
-                            <Link :href="route('forms.create')" class="gap-2">
-                                <svg class="h-4 w-4" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                                </svg>
-                                Create Your First Form
-                            </Link>
-                        </Button>
-                    </div>
-                </div>
+
+                        <!-- Empty State -->
+                        <div v-else>
+                            <Empty>
+                                <EmptyHeader>
+                                    <EmptyMedia variant="icon">
+                                        <FileX />
+                                    </EmptyMedia>
+                                    <EmptyTitle>No Forms Yet</EmptyTitle>
+                                    <EmptyDescription> You haven't created any forms yet. Get started by creating your first form. </EmptyDescription>
+                                </EmptyHeader>
+                                <EmptyContent>
+                                    <div class="flex gap-2">
+                                        <Link :href="route('forms.create')">
+                                            <Button>Create Form</Button>
+                                        </Link>
+                                    </div>
+                                </EmptyContent>
+                            </Empty>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </div>
+
+        <!-- Delete Confirmation Dialog -->
+        <AlertDialog :open="showDeleteDialog" @update:open="showDeleteDialog = $event">
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the form
+                        <span v-if="formToDelete" class="font-semibold">"{{ formToDelete.title }}"</span>
+                        and remove all associated data from our servers.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <Button variant="destructive" @click="deleteForm">Delete</Button>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     </AppLayout>
 </template>

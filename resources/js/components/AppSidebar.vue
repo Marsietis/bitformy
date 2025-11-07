@@ -5,14 +5,14 @@ import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { FilePlus, LayoutGrid } from 'lucide-vue-next';
+import { FilePlus, LayoutDashboard } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
         href: '/dashboard',
-        icon: LayoutGrid,
+        icon: LayoutDashboard,
     },
     {
         title: 'New Form',
@@ -30,10 +30,7 @@ const footerNavItems: NavItem[] = [];
             <SidebarMenu>
                 <SidebarMenuItem>
                     <Link :href="route('dashboard')">
-                        <AppLogo class="flex justify-center" />
-                        <hr
-                            class="my-4 h-px border-t-0 bg-transparent bg-gradient-to-r from-transparent via-neutral-500 to-transparent opacity-25 dark:via-neutral-400"
-                        />
+                        <AppLogo class="flex justify-center py-4" />
                     </Link>
                 </SidebarMenuItem>
             </SidebarMenu>
