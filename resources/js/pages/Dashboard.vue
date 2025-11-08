@@ -240,7 +240,7 @@ const table = useVueTable({
     <Head title="Dashboard" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="bg-muted/40 dark:bg-background">
+        <div>
             <div class="mx-auto mt-12 max-w-6xl p-6">
                 <!-- Forms Section -->
                 <Card class="w-full">

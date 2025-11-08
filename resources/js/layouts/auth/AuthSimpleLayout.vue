@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import { Link } from '@inertiajs/vue3';
 
 defineProps<{
@@ -15,7 +14,7 @@ defineProps<{
                 <div class="flex flex-col items-center gap-4">
                     <Link :href="route('home')" class="flex flex-col items-center gap-2 font-medium">
                         <div class="mb-1 flex h-9 w-9 items-center justify-center rounded-md">
-                            <div class="font-bold text-7xl">Bitformy</div>
+                            <div class="font-serif text-7xl text-primary">Bitformy</div>
                         </div>
                         <span class="sr-only">{{ title }}</span>
                     </Link>

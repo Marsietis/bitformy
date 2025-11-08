@@ -130,7 +130,7 @@ const submit = () => {
     <Head title="New Form" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="min-h-screen bg-muted/40 dark:bg-background">
+        <div>
             <div class="mx-auto mt-12 max-w-6xl p-6">
                 <form @submit.prevent="submit" class="space-y-6">
                     <!-- Form Details Card -->
@@ -219,7 +219,12 @@ const submit = () => {
                                                     <TooltipProvider>
                                                         <Tooltip>
                                                             <TooltipTrigger as-child>
-                                                                <Button variant="ghost" type="button" @click="moveQuestionUp(qIndex)" :disabled="qIndex === 0">
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    type="button"
+                                                                    @click="moveQuestionUp(qIndex)"
+                                                                    :disabled="qIndex === 0"
+                                                                >
                                                                     <ChevronUp />
                                                                 </Button>
                                                             </TooltipTrigger>
@@ -366,7 +371,12 @@ const submit = () => {
                                                             </TooltipProvider>
                                                         </div>
                                                         <div class="flex justify-center pt-4">
-                                                            <Button type="button" @click="addOption(question)" variant="outline" v-if="question.options.length > 0">
+                                                            <Button
+                                                                type="button"
+                                                                @click="addOption(question)"
+                                                                variant="outline"
+                                                                v-if="question.options.length > 0"
+                                                            >
                                                                 <Plus />
                                                                 Add Option
                                                             </Button>
