@@ -252,7 +252,7 @@ const table = useVueTable({
                         <Button asChild>
                             <Link :href="route('forms.create')" class="gap-2">
                                 <FilePlusIcon />
-                                Create New Form
+                                New form
                             </Link>
                         </Button>
                     </CardHeader>

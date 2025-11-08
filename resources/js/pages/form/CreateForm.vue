@@ -312,7 +312,7 @@ const submit = () => {
                                                 <!-- Options Section -->
                                                 <div v-if="question.type === 'choice'" class="rounded-lg border border-border bg-card p-6">
                                                     <div class="mb-4 flex items-center justify-between">
-                                                        <h4 class="text-sm font-medium text-foreground">Answer Options</h4>
+                                                        <h4 class="text-sm font-medium text-foreground">Answer options</h4>
                                                         <div class="flex items-center gap-4">
                                                             <!-- Multiple Choice Toggle -->
                                                             <div class="flex items-center space-x-2" v-if="question.options.length > 0">
@@ -328,11 +328,11 @@ const submit = () => {
                                                                 <EmptyMedia variant="icon">
                                                                     <MessageCircleQuestion />
                                                                 </EmptyMedia>
-                                                                <EmptyTitle>No options added yet</EmptyTitle>
+                                                                <EmptyTitle>No options yet</EmptyTitle>
                                                                 <EmptyDescription> Add your first option to get started. </EmptyDescription>
                                                             </EmptyHeader>
                                                             <EmptyContent>
-                                                                <Button type="button" @click="addOption(question)"> Add Option </Button>
+                                                                <Button type="button" @click="addOption(question)"> Add option </Button>
                                                             </EmptyContent>
                                                         </Empty>
                                                     </div>
@@ -378,7 +378,7 @@ const submit = () => {
                                                                 v-if="question.options.length > 0"
                                                             >
                                                                 <Plus />
-                                                                Add Option
+                                                                Add option
                                                             </Button>
                                                         </div>
                                                     </div>
@@ -390,9 +390,9 @@ const submit = () => {
 
                                 <!-- Add Question Button -->
                                 <div class="flex justify-center">
-                                    <Button variant="secondary" type="button" @click="addQuestion">
+                                    <Button variant="default" type="button" @click="addQuestion">
                                         <Plus />
-                                        Add Question
+                                        Add question
                                     </Button>
                                 </div>
                             </div>
@@ -402,7 +402,7 @@ const submit = () => {
                     <!-- Submit Buttons -->
                     <div class="flex justify-end gap-4">
                         <Button type="button" variant="outline" @click="$inertia.visit('/dashboard')"> Cancel </Button>
-                        <Button type="submit" v-if="!form.processing"> Create Form </Button>
+                        <Button type="submit" v-if="!form.processing"> Create form </Button>
                         <Button type="submit" v-if="form.processing">
                             <Loader2 class="h-4 w-4 animate-spin" />
                             Creating...

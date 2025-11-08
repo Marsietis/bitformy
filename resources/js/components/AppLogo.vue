@@ -1,5 +1,10 @@
+<script setup lang="ts">
+import { CheckCheck } from 'lucide-vue-next';
+</script>
+
 <template>
-    <div class="grid flex-1 text-left text-sm">
-        <span class="font-serif text-5xl text-primary">Bitformy</span>
+    <div class="flex items-center">
+        <CheckCheck class="size-12 text-white" />
+        <span class="font-serif text-5xl text-white">Bitformy</span>
     </div>
 </template>
