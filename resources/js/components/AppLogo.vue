@@ -4,7 +4,7 @@ import { CheckCheck } from 'lucide-vue-next';
 
 <template>
     <div class="flex items-center">
-        <CheckCheck class="size-12 text-white" />
-        <span class="font-serif text-5xl text-white">Bitformy</span>
+        <CheckCheck class="size-12 text-foreground mr-2" />
+        <span class="font-bold text-4xl text-foreground">Bitformy</span>
     </div>
 </template>
