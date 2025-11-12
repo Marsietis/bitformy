@@ -157,7 +157,7 @@ const columns: ColumnDef<Form>[] = [
                                         h(Copy),
                                         'Copy link',
                                     ]),
-                                    h(DropdownMenuItem, { variant: 'destructive', onClick: () => confirmDelete(form) }, () => [
+                                    h(DropdownMenuItem, { onClick: () => confirmDelete(form) }, () => [
                                         h(Trash),
                                         'Delete form',
                                     ]),
