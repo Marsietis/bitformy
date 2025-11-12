@@ -14,6 +14,7 @@ import { Head, useForm } from '@inertiajs/vue3';
 import { ChevronDown, ChevronUp, Circle, Copy, GripVertical, Loader2, MessageCircleQuestion, Plus, Square, Trash } from 'lucide-vue-next';
 import { nextTick, ref } from 'vue';
 
+import { Badge } from '@/components/ui/badge';
 import draggable from 'vuedraggable';
 
 const props = defineProps({
@@ -197,12 +198,7 @@ const submit = () => {
                                                     </div>
                                                     <div class="flex items-center gap-2">
                                                         <span class="text-sm font-medium text-foreground"> Question {{ qIndex + 1 }} </span>
-                                                        <span
-                                                            v-if="question.required"
-                                                            class="inline-flex items-center rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive dark:bg-destructive/20"
-                                                        >
-                                                            Required
-                                                        </span>
+                                                        <Badge variant="destructive" v-if="question.required"> Required </Badge>
                                                     </div>
                                                 </div>
                                                 <div class="flex items-center gap-2">
