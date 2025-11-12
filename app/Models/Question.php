@@ -31,4 +31,42 @@ class Question extends Model
     {
         return $this->belongsTo(Form::class);
     }
+
+    public function toFormattedArray(): array
+    {
+        $questionData = [
+            'id' => $this->id,
+            'title' => $this->title,
+            'type' => $this->type,
+            'required' => $this->required,
+            'order' => $this->order,
+            'options' => [],
+            'multipleChoice' => false,
+        ];
+
+        if ($this->type === 'choice' && ! empty($this->options)) {
+            $optionsData = json_decode($this->options, true);
+
+            if ($optionsData && isset($optionsData['items'])) {
+                $formattedOptions = [];
+                $optionId = 1;
+
+                foreach ($optionsData['items'] as $optionText) {
+                    $formattedOptions[] = [
+                        'id' => $optionId,
+                        'text' => $optionText,
+                    ];
+                    $optionId++;
+                }
+
+                $questionData['options'] = $formattedOptions;
+
+                if (isset($optionsData['multiple'])) {
+                    $questionData['multipleChoice'] = $optionsData['multiple'];
+                }
+            }
+        }
+
+        return $questionData;
+    }
 }

@@ -56,15 +56,83 @@ class Form extends Model
                 'type' => $questionData['type'],
                 'required' => $questionData['required'],
                 'order' => $order,
-                'options' => $this->formatOptions($questionData['options'] ?? []),
+                'options' => $this->formatOptions($questionData['options'] ?? [], $questionData['multipleChoice'] ?? false),
                 'allow_multiple' => $questionData['multipleChoice'],
             ]);
         }
     }
 
-    private function formatOptions(array $options): string
+    public function getFormattedQuestions(): array
     {
-        return json_encode(array_column($options, 'text'));
+        return $this->questions()
+            ->orderBy('order')
+            ->get()
+            ->map(fn ($question) => $question->toFormattedArray())
+            ->toArray();
+    }
+
+    public function updateQuestions(array $questions): void
+    {
+        $currentQuestionIds = $this->questions()->pluck('id')->toArray();
+        $processedQuestionIds = [];
+
+        foreach ($questions as $order => $questionData) {
+            $optionsToSave = null;
+
+            if ($questionData['type'] === 'choice') {
+                $optionsToSave = $this->formatOptions(
+                    $questionData['options'] ?? [],
+                    $questionData['multipleChoice'] ?? false
+                );
+            }
+
+            if (isset($questionData['id']) && in_array($questionData['id'], $currentQuestionIds)) {
+                $question = $this->questions()->find($questionData['id']);
+                $question->update([
+                    'title' => $questionData['title'],
+                    'type' => $questionData['type'],
+                    'options' => $optionsToSave,
+                    'required' => $questionData['required'] ?? false,
+                    'order' => $order,
+                ]);
+
+                $processedQuestionIds[] = $questionData['id'];
+            } else {
+                $question = $this->questions()->create([
+                    'title' => $questionData['title'],
+                    'type' => $questionData['type'],
+                    'options' => $optionsToSave,
+                    'required' => $questionData['required'] ?? false,
+                    'order' => $order,
+                ]);
+
+                $processedQuestionIds[] = $question->id;
+            }
+        }
+
+        $questionsToDelete = array_diff($currentQuestionIds, $processedQuestionIds);
+
+        if (! empty($questionsToDelete)) {
+            $this->questions()->whereIn('id', $questionsToDelete)->delete();
+        }
+    }
+
+    private function formatOptions(array $options, bool $allowMultiple = false): ?string
+    {
+        if (empty($options)) {
+            return null;
+        }
+
+        if (is_string($options)) {
+            return $options;
+        }
+
+        $optionTexts = array_column($options, 'text');
+
+        return json_encode([
+            'items' => $optionTexts,
+            'multiple' => $allowMultiple,
+        ]);
     }
 
     public function regenerateLink()
