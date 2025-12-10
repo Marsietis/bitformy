@@ -57,7 +57,8 @@ class Form extends Model
                 'required' => $questionData['required'],
                 'order' => $order,
                 'options' => $this->formatOptions($questionData['options'] ?? []),
-                'allow_multiple' => $questionData['multipleChoice'],
+                'allow_multiple' => $questionData['multipleChoice'] ?? false,
+                'rating_levels' => $questionData['rating_levels'] ?? null,
             ]);
         }
     }

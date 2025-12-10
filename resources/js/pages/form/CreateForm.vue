@@ -52,6 +52,7 @@ const addQuestion = () => {
         required: false,
         multipleChoice: false,
         options: [],
+        rating_levels: 5,
     });
     focusNextQuestionTitle(newQuestionId);
 };
@@ -69,6 +70,7 @@ const copyQuestion = (questionIndex) => {
         type: questionToCopy.type,
         required: questionToCopy.required,
         multipleChoice: questionToCopy.multipleChoice,
+        rating_levels: questionToCopy.rating_levels,
         options: questionToCopy.options
             ? questionToCopy.options.map((option) => ({
                   id: nextOptionId.value++,
@@ -377,6 +379,28 @@ const submit = () => {
                                                                 Add option
                                                             </Button>
                                                         </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Rating options -->
+                                                <div v-if="question.type === 'rating'" class="rounded-lg border border-border bg-card p-6">
+                                                    <div class="mb-4 flex items-center justify-between">
+                                                        <h4 class="text-sm font-medium text-foreground">Rating options</h4>
+                                                    </div>
+                                                    <div class="grid gap-2">
+                                                        <Label :for="`question-${question.id}-rating-levels`"> Rating levels </Label>
+                                                        <Select v-model="question.rating_levels">
+                                                            <SelectTrigger :id="`question-${question.id}-rating-levels`" class="w-full">
+                                                                <SelectValue placeholder="Select number of rating levels" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectGroup>
+                                                                    <SelectItem v-for="i in 10" :key="i" :value="i">
+                                                                        {{ i }}
+                                                                    </SelectItem>
+                                                                </SelectGroup>
+                                                            </SelectContent>
+                                                        </Select>
                                                     </div>
                                                 </div>
                                             </div>

@@ -27,7 +27,7 @@ import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/AppLayout.vue';
 import GuestLayout from '@/layouts/GuestLayout.vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import { CalendarPlus, Copy, Eye, Pencil, RefreshCw, Share2, Trash } from 'lucide-vue-next';
+import { CalendarPlus, Copy, Eye, Pencil, RefreshCw, Share2, Star, Trash } from 'lucide-vue-next';
 import * as openpgp from 'openpgp';
 import { computed, ref } from 'vue';
 
@@ -73,6 +73,8 @@ const initializeAnswers = () => {
                 // Use null for all other questions
                 initialAnswers[question.id] = null;
             }
+        } else if (question.type === 'rating' || question.type === 'date') {
+            initialAnswers[question.id] = null;
         } else {
             // Use null for all other questions
             initialAnswers[question.id] = null;
@@ -382,6 +384,34 @@ function cancelDelete() {
                                                         </div>
                                                     </div>
                                                     <div v-else class="text-muted-foreground/80 italic">No options available</div>
+                                                </div>
+
+                                                <!-- Rating question type -->
+                                                <div v-else-if="question.type === 'rating'">
+                                                    <div class="flex items-center gap-1">
+                                                        <template v-for="level in question.rating_levels">
+                                                            <Star
+                                                                class="h-8 w-8 cursor-pointer transition-colors"
+                                                                :class="{
+                                                                    'fill-current text-yellow-400': level <= answers[question.id],
+                                                                    'text-gray-300': level > answers[question.id],
+                                                                }"
+                                                                @click="
+                                                                    answers[question.id] = answers[question.id] === level ? 0 : level
+                                                                "
+                                                            />
+                                                        </template>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Date question type -->
+                                                <div v-else-if="question.type === 'date'">
+                                                    <Input
+                                                        type="datetime-local"
+                                                        :required="question.required"
+                                                        v-model="answers[question.id]"
+                                                        class="w-full"
+                                                    />
                                                 </div>
                                             </div>
                                         </div>

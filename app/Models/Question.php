@@ -18,8 +18,10 @@ class Question extends Model
         'type',
         'options',
         'allow_multiple',
+        'allow_multiple',
         'required',
         'order',
+        'rating_levels',
     ];
 
     public function answer(): HasMany
