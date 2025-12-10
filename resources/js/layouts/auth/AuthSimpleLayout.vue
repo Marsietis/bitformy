@@ -14,9 +14,11 @@ defineProps<{
             <div class="flex flex-col gap-8">
                 <div class="flex flex-col items-center gap-4">
                     <Link :href="route('home')" class="flex flex-col items-center gap-2 font-medium">
-                        <div class="flex items-center">
-                            <CheckCheck class="size-14 text-white" />
-                            <span class="font-serif text-7xl text-white">Bitformy</span>
+                        <div class="mt-8 flex justify-center">
+                            <div class="flex items-center">
+                                <CheckCheck class="mr-2 size-24 text-foreground" />
+                                <span class="text-7xl font-bold text-foreground">Bitformy</span>
+                            </div>
                         </div>
                         <span class="sr-only">{{ title }}</span>
                     </Link>

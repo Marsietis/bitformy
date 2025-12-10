@@ -233,7 +233,7 @@ function cancelDelete() {
 
     <component :is="layout" :breadcrumbs="breadcrumbs">
         <div class="min-h-screen bg-muted/40 dark:bg-background">
-            <div class="mx-auto mt-12 max-w-6xl space-y-6 p-6">
+            <div class="mx-auto max-w-6xl space-y-6 p-6">
                 <!-- Form Header Card -->
                 <Card>
                     <CardHeader>

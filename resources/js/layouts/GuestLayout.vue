@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import AppContent from '@/components/AppContent.vue';
 import AppShell from '@/components/AppShell.vue';
-import { Link } from '@inertiajs/vue3';
+import { CheckCheck } from 'lucide-vue-next';
 </script>
 
 <template>
     <AppShell>
         <AppContent>
             <div class="mt-8 flex justify-center">
-                <Link :href="route('home')">
-                    <div class="grid flex-1 text-left text-sm">
-                        <span class="font-serif text-7xl text-primary">Bitformy</span>
-                    </div>
-                </Link>
+                <div class="flex items-center">
+                    <CheckCheck class="mr-2 size-24 text-foreground" />
+                    <span class="text-7xl font-bold text-foreground">Bitformy</span>
+                </div>
             </div>
             <slot />
         </AppContent>
