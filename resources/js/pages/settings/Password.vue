@@ -2,15 +2,19 @@
 import InputError from '@/components/InputError.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, useForm, usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type User } from '@/types';
 import Disable2fa from '@/components/Disable2fa.vue';
+import { argon2idHash, shaHash } from '@/utils/crypto/hashingUtils';
+import { encryptWithAes, generateSalt } from '@/utils/crypto/encryptionUtils';
+import { validatePassword } from '@/utils/passwordValidation';
+import axios from 'axios';
 
 const breadcrumbItems: BreadcrumbItem[] = [
     {
@@ -32,26 +36,77 @@ const form = useForm({
     password_confirmation: '',
 });
 
-const updatePassword = () => {
-    form.put(route('password.update'), {
-        preserveScroll: true,
-        onSuccess: () => form.reset(),
-        onError: (errors: any) => {
-            if (errors.password) {
-                form.reset('password', 'password_confirmation');
-                if (passwordInput.value instanceof HTMLInputElement) {
-                    passwordInput.value.focus();
-                }
-            }
+const page = usePage();
+const user = page.props.auth.user as User;
 
-            if (errors.current_password) {
-                form.reset('current_password');
-                if (currentPasswordInput.value instanceof HTMLInputElement) {
-                    currentPasswordInput.value.focus();
+const updatePassword = async () => {
+    form.clearErrors();
+
+
+    const passwordError = validatePassword(form.password, form.password_confirmation);
+    if (passwordError) {
+        form.setError('password_confirmation', passwordError);
+        return;
+    }
+
+    form.processing = true;
+
+    try {
+        const saltResponse = await axios.post(route('pull-salt'), {
+            email: user.email,
+        });
+        const currentSalt = saltResponse.data.salt;
+
+        const currentPasswordHash = await argon2idHash(form.current_password, currentSalt);
+        const currentPasswordValidator = await shaHash(currentPasswordHash);
+
+        const privateKey = sessionStorage.getItem('privateKey');
+        if (!privateKey) {
+            form.setError('current_password', 'Session expired. Please log in again.');
+            return;
+        }
+
+        const newSalt = generateSalt();
+        const newPasswordHash = await argon2idHash(form.password, newSalt);
+        const newPasswordValidator = await shaHash(newPasswordHash);
+
+        const encryptedPrivateKey = JSON.stringify(await encryptWithAes(privateKey, newPasswordHash));
+
+        form.transform(() => ({
+            current_password_validator: currentPasswordValidator,
+            password_validator: newPasswordValidator,
+            salt: newSalt,
+            private_key: encryptedPrivateKey,
+        })).put(route('password.update'), {
+            preserveScroll: true,
+            onSuccess: () => {
+                form.reset();
+            },
+            onError: (errors: any) => {
+                if (errors.password) {
+                    form.reset('password', 'password_confirmation');
+                    if (passwordInput.value instanceof HTMLInputElement) {
+                        passwordInput.value.focus();
+                    }
                 }
-            }
-        },
-    });
+
+                if (errors.current_password_validator || errors.current_password) {
+                    form.reset('current_password');
+                    if (currentPasswordInput.value instanceof HTMLInputElement) {
+                        currentPasswordInput.value.focus();
+                    }
+                    if (errors.current_password_validator) {
+                        form.setError('current_password', errors.current_password_validator);
+                    }
+                }
+            },
+        });
+    } catch (error: any) {
+        console.error('Error updating password:', error);
+        form.setError('current_password', 'An error occurred. Please try again.');
+    } finally {
+        form.processing = false;
+    }
 };
 </script>
 
