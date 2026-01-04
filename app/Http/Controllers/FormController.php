@@ -50,42 +50,34 @@ class FormController extends Controller
         $processedQuestions = [];
 
         foreach ($questions as $question) {
-            $questionData = [
-                'id' => $question->id,
-                'title' => $question->title,
-                'type' => $question->type,
-                'required' => $question->required,
-                'order' => $question->order,
-                'options' => [],
-                'multipleChoice' => false,
-            ];
+            $questionType = $question->type instanceof QuestionType
+                ? $question->type->value
+                : (string) $question->type;
 
-            if ($question->type === 'choice') {
-                $optionsJson = $question->options;
-
-                if (! empty($optionsJson)) {
-                    $optionsData = json_decode($optionsJson, true);
-
-                    if ($optionsData && isset($optionsData['items'])) {
-                        $formattedOptions = [];
-                        $optionId = 1;
-
-                        foreach ($optionsData['items'] as $optionText) {
-                            $formattedOptions[] = [
-                                'id' => $optionId,
-                                'text' => $optionText,
-                            ];
-                            $optionId++;
-                        }
-
-                        $questionData['options'] = $formattedOptions;
-
-                        if (isset($optionsData['multiple'])) {
-                            $questionData['multipleChoice'] = $optionsData['multiple'];
-                        }
+            $formattedOptions = [];
+            if (! empty($question->options)) {
+                $optionsArray = is_string($question->options) ? json_decode($question->options, true) : $question->options;
+                if (is_array($optionsArray)) {
+                    $optionId = 1;
+                    foreach ($optionsArray as $optionText) {
+                        $formattedOptions[] = [
+                            'id' => $optionId++,
+                            'text' => $optionText,
+                        ];
                     }
                 }
             }
+
+            $questionData = [
+                'id' => $question->id,
+                'title' => $question->title,
+                'type' => $questionType,
+                'required' => (bool) $question->required,
+                'order' => $question->order,
+                'options' => $formattedOptions,
+                'multipleChoice' => (bool) $question->allow_multiple,
+                'rating_levels' => $question->rating_levels ?? 5,
+            ];
 
             $processedQuestions[] = $questionData;
         }
@@ -93,6 +85,11 @@ class FormController extends Controller
         return Inertia::render('form/EditForm', [
             'form' => $form,
             'questions' => $processedQuestions,
+            'questionTypes' => collect(QuestionType::cases())->map(fn ($case) => [
+                'name' => $case->name,
+                'value' => $case->value,
+                'label' => $case->label(),
+            ]),
         ]);
     }
 
@@ -116,39 +113,14 @@ class FormController extends Controller
 
         $questionOrder = 0;
         foreach ($validatedData['questions'] as $questionData) {
-            $optionsToSave = null;
-
-            if ($questionData['type'] === 'choice') {
-                if (isset($questionData['options'])) {
-                    if (is_string($questionData['options']) && ! empty($questionData['options'])) {
-                        $optionsToSave = $questionData['options'];
-                    } elseif (is_array($questionData['options']) && ! empty($questionData['options'])) {
-                        $optionTexts = [];
-                        foreach ($questionData['options'] as $option) {
-                            if (isset($option['text'])) {
-                                $optionTexts[] = $option['text'];
-                            }
-                        }
-
-                        $allowMultiple = false;
-                        if (isset($questionData['multipleChoice'])) {
-                            $allowMultiple = $questionData['multipleChoice'];
-                        }
-
-                        $optionsArray = [
-                            'items' => $optionTexts,
-                            'multiple' => $allowMultiple,
-                        ];
-
-                        $optionsToSave = json_encode($optionsArray);
-                    }
-                }
+            $optionsToSave = json_encode([]);
+            if (isset($questionData['options']) && is_array($questionData['options'])) {
+                $optionTexts = array_column($questionData['options'], 'text');
+                $optionsToSave = json_encode($optionTexts);
             }
 
-            $isRequired = false;
-            if (isset($questionData['required'])) {
-                $isRequired = $questionData['required'];
-            }
+            $allowMultiple = $questionData['multipleChoice'] ?? false;
+            $isRequired = $questionData['required'] ?? false;
 
             if (isset($questionData['id']) && in_array($questionData['id'], $currentQuestionIds)) {
                 $existingQuestion = Question::find($questionData['id']);
@@ -157,8 +129,10 @@ class FormController extends Controller
                     $existingQuestion->title = $questionData['title'];
                     $existingQuestion->type = $questionData['type'];
                     $existingQuestion->options = $optionsToSave;
+                    $existingQuestion->allow_multiple = $allowMultiple;
                     $existingQuestion->required = $isRequired;
                     $existingQuestion->order = $questionOrder;
+                    $existingQuestion->rating_levels = $questionData['rating_levels'] ?? null;
                     $existingQuestion->save();
 
                     $processedQuestionIds[] = $questionData['id'];
@@ -169,8 +143,10 @@ class FormController extends Controller
                 $newQuestion->title = $questionData['title'];
                 $newQuestion->type = $questionData['type'];
                 $newQuestion->options = $optionsToSave;
+                $newQuestion->allow_multiple = $allowMultiple;
                 $newQuestion->required = $isRequired;
                 $newQuestion->order = $questionOrder;
+                $newQuestion->rating_levels = $questionData['rating_levels'] ?? null;
                 $newQuestion->save();
 
                 $processedQuestionIds[] = $newQuestion->id;
