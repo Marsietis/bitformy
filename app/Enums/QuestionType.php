@@ -8,6 +8,8 @@ enum QuestionType: string
     case CHOICE = 'choice';
     case RATING = 'rating';
     case DATE = 'date';
+    case EMAIL = 'email';
+    case URL = 'url';
 
     public function label(): string
     {
@@ -16,6 +18,8 @@ enum QuestionType: string
             self::CHOICE => 'Choice',
             self::RATING => 'Rating',
             self::DATE => 'Date',
+            self::EMAIL => 'Email',
+            self::URL => 'URL',
         };
     }
 }

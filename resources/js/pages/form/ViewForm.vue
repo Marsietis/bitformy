@@ -27,7 +27,7 @@ import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/AppLayout.vue';
 import GuestLayout from '@/layouts/GuestLayout.vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import { CalendarPlus, Copy, Eye, Pencil, RefreshCw, Share2, Star, Trash } from 'lucide-vue-next';
+import { CalendarPlus, Copy, Eye, Pencil, RefreshCw, Share2, Star, Trash, Check } from 'lucide-vue-next';
 import * as openpgp from 'openpgp';
 import { computed, ref } from 'vue';
 
@@ -358,6 +358,28 @@ function cancelDelete() {
                                                     />
                                                 </div>
 
+                                                <!-- Email question type -->
+                                                <div v-else-if="question.type === 'email'">
+                                                    <Input
+                                                        type="email"
+                                                        :required="question.required"
+                                                        v-model="answers[question.id]"
+                                                        placeholder="example@example.com"
+                                                        class="w-full"
+                                                    />
+                                                </div>
+
+                                                <!-- URL question type -->
+                                                <div v-else-if="question.type === 'url'">
+                                                    <Input
+                                                        type="url"
+                                                        :required="question.required"
+                                                        v-model="answers[question.id]"
+                                                        placeholder="https://bitformy.com"
+                                                        class="w-full"
+                                                    />
+                                                </div>
+
                                                 <!-- Choice question type -->
                                                 <div v-else-if="question.type === 'choice'">
                                                     <div v-if="question.options.length > 0" class="space-y-3">
@@ -435,9 +457,7 @@ function cancelDelete() {
                 <!-- Success State -->
                 <div v-else class="rounded-xl border border-border bg-card p-12 text-center shadow-sm">
                     <div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/15 dark:bg-emerald-500/25">
-                        <svg class="h-8 w-8 text-emerald-500" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
+                        <Check class="h-8 w-8 text-emerald-500" />
                     </div>
                     <h2 class="mb-3 text-2xl font-bold text-foreground">Form submitted successfully</h2>
                     <p class="mb-8 text-muted-foreground">Your response has been recorded and encrypted.</p>

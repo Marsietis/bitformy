@@ -427,6 +427,22 @@ const regenerateLink = () => {
                                                         disabled
                                                         readonly
                                                     />
+                                                    <Input
+                                                        v-if="form.questions[qIndex].type === 'email'"
+                                                        class="mt-6 cursor-not-allowed"
+                                                        type="email"
+                                                        placeholder="example@example.com"
+                                                        disabled
+                                                        readonly
+                                                    />
+                                                    <Input
+                                                        v-if="form.questions[qIndex].type === 'url'"
+                                                        class="mt-6 cursor-not-allowed"
+                                                        type="url"
+                                                        placeholder="https://bitformy.com"
+                                                        disabled
+                                                        readonly
+                                                    />
                                                 </div>
                                                 <Separator class="my-4" />
                                                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
